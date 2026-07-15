@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P. Erenburg — Creative Director</title>
+<meta name="description" content="P. Erenburg — Creative Director, Multidisciplinary Lead Designer. 9+ years across branding, product and gamedev.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;
+  --ink:#eae7e0;
+  --ink-dim:#8f8c85;
+  --ink-faint:#4a4843;
+  --gold:#d8b56a;
+  --hairline:rgba(234,231,224,.07);
+  --serif:"Instrument Serif", serif;
+  --sans:"Instrument Sans", sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html.lenis{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--ink);color:var(--bg)}
+a{color:inherit}
+
+/* ============ PRELOADER ============ */
+#loader{position:fixed;inset:0;z-index:100;background:var(--bg);
+  transition:opacity .8s ease, visibility .8s;}
+#loader.done{opacity:0;visibility:hidden}
+.loader-num{position:absolute;left:3.5vw;bottom:2vh;
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(90px,15vw,240px);line-height:1;
+  font-variant-numeric:tabular-nums;
+  transition:opacity .5s ease,filter .5s ease}
+/* ХРОМ: металлический градиент по вертикали — светлый верх, тёмная полоса
+   по линии горизонта, отражённый свет снизу; поверх — косая вспышка-блик */
+.glass-text{
+  position:relative;display:inline-block;
+  background:linear-gradient(178deg,
+    #ffffff 0%, #f4f6f8 10%, #d3d9e0 22%, #8b939d 38%,
+    #464d57 49%, #6f7681 52%, #b9c1ca 60%,
+    #eef1f4 70%, #ffffff 82%, #a7aeb7 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  /* настоящая внутренняя тень + внутренний блик по кромкам */
+  filter:url(#chromeBevel) drop-shadow(0 0.012em 0.02em rgba(0,0,0,.75))}
+.glass-text::after{                               /* вспышка по хрому */
+  content:attr(data-t);position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(112deg,transparent 36%,rgba(255,255,255,.98) 47%,rgba(255,255,255,.25) 52%,transparent 60%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+.loader-num .dim{opacity:.22;transition:opacity .4s ease}
+.loader-num.out{opacity:0;filter:blur(8px)}
+.loader-title{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:clamp(44px,7.5vw,120px);line-height:.92;
+  text-transform:uppercase;color:var(--ink);
+  opacity:0;filter:blur(14px);transform:scale(.985);
+  transition:opacity .9s ease,filter .9s ease,transform .9s ease;
+  text-align:center;padding:0 6vw}
+.loader-title span{display:block}
+/* тот же хром, но в золоте — центральная ось на --gold #d8b56a */
+.loader-title .p{
+  position:relative;display:inline-block;
+  background:linear-gradient(178deg,
+    #fffaf0 0%, #f7e9c4 10%, #e6cf94 22%, #c19f52 38%,
+    #6f5820 49%, #9d7f38 52%, #d8b56a 60%,
+    #f2e2b6 70%, #fffdf6 82%, #bf9d55 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:url(#chromeBevel) drop-shadow(0 0.012em 0.02em rgba(0,0,0,.75))}
+.loader-title .p::after{
+  content:attr(data-t);position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(112deg,transparent 36%,rgba(255,252,240,.98) 47%,rgba(255,246,214,.25) 52%,transparent 60%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+.loader-title.show{opacity:1;filter:blur(0);transform:scale(1)}
+/* «пролетаем мимо фразы»: рост + расфокус */
+.loader-title.out{opacity:0;filter:blur(22px);transform:scale(2.1);
+  transition:opacity 1.15s cubic-bezier(.55,0,.8,.4),
+             filter 1.15s cubic-bezier(.55,0,.8,.4),
+             transform 1.15s cubic-bezier(.55,0,.8,.4)}
+
+/* ============ ВЕРХНЯЯ ПОЛОСА: имя · бегущая строка · часы ============ */
+header{position:fixed;top:0;left:0;right:0;z-index:60;
+  display:flex;align-items:stretch;
+  background:linear-gradient(180deg,rgba(234,231,224,.05),rgba(234,231,224,0) 55%),rgba(8,8,8,.38);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
+  border-bottom:1px solid rgba(234,231,224,.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  opacity:0;transition:opacity 1s ease}
+header.on{opacity:1}
+.corner-name{display:flex;align-items:center;padding:0 26px;border-right:1px solid var(--hairline);
+  font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;white-space:nowrap;transition:color .3s}
+.corner-name:hover{color:var(--ink)}
+.corner-clock{display:flex;align-items:center;padding:0 26px;border-left:1px solid var(--hairline);
+  font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ticker{flex:1;overflow:hidden;display:flex;align-items:center;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 46px,#000 calc(100% - 46px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 46px,#000 calc(100% - 46px),transparent)}
+.ticker-track{display:flex;white-space:nowrap;padding:13px 0;will-change:transform}
+.ticker-track span{font-family:var(--serif);font-style:normal;font-weight:400;
+  font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink);padding-right:52px}
+
+/* ============ LIQUID GLASS DOCK (Apple-style) ============ */
+.dock{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:70;
+  border-radius:34px;isolation:isolate;
+  opacity:0;transition:opacity .9s ease}
+.dock.on{opacity:1}
+/* стеклянный материал — тот же рецепт, что у верхней полосы (реальный блюр фона) */
+.dock-glass{position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(234,231,224,.05),rgba(234,231,224,0) 55%),rgba(8,8,8,.38);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  backdrop-filter:blur(18px) saturate(150%);
+  border:1px solid rgba(234,231,224,.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 44px rgba(0,0,0,.5)}
+.dock-inner{position:relative;z-index:1;display:flex;align-items:center;gap:4px;padding:8px}
+.dock a{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;
+  color:var(--ink);text-decoration:none;padding:11px 18px;border-radius:24px;
+  transition:background .35s,color .35s}
+.dock a:hover{background:rgba(255,255,255,.16)}
+.dock-sep{width:1px;height:22px;background:rgba(255,255,255,.22);margin:0 5px}
+.dock-cta i{font-style:normal;font-size:10px;color:var(--ink-dim);margin-left:6px;transition:color .35s}
+.dock-cta:hover i{color:var(--ink)}
+
+/* ============ INTRO ============ */
+#intro{height:100vh;position:relative;overflow:hidden}
+.intro-part{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:0 7vw;will-change:opacity,filter}
+.intro-part .txt{max-width:960px;text-align:center}
+.intro-part p.lead{
+  font-family:var(--serif);font-size:clamp(25px,3.1vw,46px);line-height:1.3;
+  color:var(--ink);font-weight:400}
+.intro-part em{font-style:italic}
+.intro-part .gold{color:var(--gold)}
+.intro-part .w{opacity:.06;filter:blur(10px);display:inline-block;
+  transition:opacity .7s ease,filter .7s ease;will-change:filter}
+.intro-part .w.on{opacity:1;filter:blur(0)}
+.intro-part div.w{display:block}
+#introB{opacity:0;visibility:hidden}
+.studio{color:var(--ink);text-decoration:none;position:relative;white-space:nowrap;
+  border-bottom:1px solid rgba(234,231,224,.35);transition:color .3s,border-color .3s;cursor:pointer}
+.studio::after{content:"\2197";font-size:.45em;vertical-align:super;margin-left:.18em;
+  color:var(--ink-dim);transition:color .3s}
+.studio:hover{color:var(--gold);border-color:var(--gold)}
+.studio:hover::after{color:var(--gold)}
+.award{font-family:var(--sans);font-size:.32em;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);vertical-align:super;margin-left:.5em;white-space:nowrap}
+.pair{white-space:nowrap}
+.brand-h{white-space:nowrap;border-bottom:1px dashed rgba(234,231,224,.25);cursor:default;
+  transition:color .3s,border-color .3s}
+.brand-h:hover{color:var(--gold);border-color:rgba(216,181,106,.5)}
+/* ============ HOVER-КАРТОЧКИ ============ */
+#siteTip{position:fixed;z-index:80;pointer-events:none;width:340px;
+  opacity:0;filter:blur(7px);transform:translateY(10px) scale(.97);
+  transition:opacity .45s ease,filter .45s ease,transform .45s ease}
+#siteTip.show{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}
+#siteTip .shot{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top;
+  display:block;border:1px solid rgba(234,231,224,.14);border-radius:14px 14px 0 0;background:#101010}
+#siteTip .cap{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);
+  padding:9px 14px;text-align:left;
+  background:rgba(10,10,10,.4);
+  -webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);
+  border:1px solid rgba(234,231,224,.14);border-top:none;border-radius:0 0 14px 14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+#logoTip{position:fixed;z-index:80;pointer-events:none;width:190px;
+  opacity:0;filter:blur(7px);transform:translateY(10px) scale(.97);
+  transition:opacity .45s ease,filter .45s ease,transform .45s ease}
+#logoTip.show{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}
+#logoTip .card{background:#fff;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
+  border-radius:14px;overflow:hidden;border:1px solid rgba(234,231,224,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 10px 40px rgba(0,0,0,.5)}
+#logoTip img{max-width:60%;max-height:52%;object-fit:contain;display:block}
+#logoTip .fallback{font-family:var(--sans);font-weight:500;font-size:20px;color:#111;display:none}
+
+/* ============ PORTFOLIO ============ */
+section{position:relative;padding:0 28px}
+.pf-head{padding:16vh 28px 0;text-align:center}
+.pf-head h2{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(56px,12vw,190px);line-height:1;text-transform:uppercase;
+  overflow:hidden}
+.pf-head h2 span{display:inline-block}
+.filters{margin:5vh 0 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.filters button{
+  background:linear-gradient(180deg,rgba(234,231,224,.09),rgba(234,231,224,.03));
+  -webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);
+  border:1px solid rgba(234,231,224,.14);color:var(--ink-dim);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  padding:10px 22px;border-radius:26px;cursor:pointer;
+  transition:color .45s,border-color .45s,background .45s,box-shadow .45s}
+.filters button:hover{color:var(--ink);border-color:rgba(234,231,224,.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 24px rgba(234,231,224,.05)}
+.filters button.active{background:var(--ink);color:var(--bg);border-color:var(--ink);
+  box-shadow:0 4px 28px rgba(234,231,224,.12)}
+
+.grid-free{
+  display:grid;grid-template-columns:repeat(12,1fr);
+  column-gap:3vw;row-gap:13vh;
+  padding:12vh 4vw 8vh;align-items:start}
+.tile{position:relative;overflow:hidden;cursor:pointer;
+  border-radius:16px;border:1px solid rgba(234,231,224,.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .9s cubic-bezier(.2,.6,.2,1)}
+.tile-tall img{object-position:top}
+.tile.hovered .tile-cover{transform:scale(1.045)}
+/* динамичное превью: кадры проекта крутятся под текстом при наведении */
+.tile-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .8s ease;z-index:1}
+.tile-preview.on{opacity:1}
+/* ховер: крупное имя антиквой, привязано к курсору; фон не блюрим — играют картинки */
+.tile figcaption{position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;transition:opacity .7s ease;
+  background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.45))}
+.tile.hovered figcaption{opacity:1}
+.tile-name{font-family:var(--serif);font-weight:400;
+  font-size:clamp(38px,4.8vw,104px);line-height:1;text-transform:uppercase;
+  color:#fff;white-space:nowrap;will-change:transform;
+  text-shadow:0 6px 44px rgba(0,0,0,.85),0 1px 5px rgba(0,0,0,.65);
+  /* позицию ведёт rAF-лерп в JS — transition на transform тут даёт дребезг */
+  transition:opacity .7s ease;opacity:0}
+.tile.hovered .tile-name{opacity:1}
+.tile.hide{display:none}
+/* раскладка тайлов задаётся из JS: 18 уникальных слотов без повторяющегося ритма */
+
+/* ============ EXPERIENCE (bravado level low) ============ */
+#experience{max-width:900px;margin:0 auto;padding:18vh 28px 6vh}
+.exp-label{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-dim);
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:3.5vh}
+.exp-label .range{color:var(--ink-faint);letter-spacing:.2em}
+.exp-row{border-top:1px solid var(--hairline)}
+.exp-row:last-child{border-bottom:1px solid var(--hairline)}
+.exp-head{display:grid;grid-template-columns:1fr auto auto;gap:6px 24px;align-items:baseline;
+  width:100%;text-align:left;background:none;border:none;cursor:pointer;
+  font-family:var(--sans);color:inherit;
+  padding:22px 0;transition:padding .35s ease}
+.exp-row:hover .exp-head{padding-left:10px}
+.exp-co{font-family:var(--serif);font-size:clamp(20px,2.2vw,28px);color:var(--ink);
+  transition:color .3s}
+.exp-row:hover .exp-co,.exp-row.open .exp-co{color:var(--gold)}
+.exp-years{font-size:11px;letter-spacing:.18em;color:var(--ink-faint);white-space:nowrap}
+.exp-plus{font-family:var(--serif);font-size:22px;line-height:1;color:var(--ink-faint);
+  transition:transform .45s ease,color .3s;transform-origin:center}
+.exp-row.open .exp-plus{transform:rotate(45deg);color:var(--gold)}
+.exp-role{grid-column:1/-1;font-size:12px;color:var(--ink-dim);letter-spacing:.04em}
+.exp-desc{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s ease}
+.exp-desc > div{overflow:hidden}
+.exp-desc p{max-width:640px;padding:0 0 26px;font-size:13.5px;line-height:1.75;color:var(--ink-dim)}
+.exp-row.open .exp-desc{grid-template-rows:1fr}
+
+/* ============ CASE VIEWER: лента кейса поверх размытого сайта ============ */
+/* лента уходит в блюр и темноту полностью — на фоне не остаётся ничего */
+#caseView{position:fixed;inset:0;z-index:90;overflow-y:auto;overscroll-behavior:contain;
+  background:rgba(0,0,0,.94);
+  -webkit-backdrop-filter:blur(30px) brightness(.35);
+  backdrop-filter:blur(30px) brightness(.35);
+  opacity:0;visibility:hidden;transition:opacity .8s ease,visibility .8s}
+#caseView.open{opacity:1;visibility:visible}
+.case-feed{max-width:min(1080px,90vw);margin:0 auto;padding:11vh 0 14vh;
+  display:grid;grid-template-columns:repeat(2,1fr);gap:22px;align-content:start;
+  /* появляется только когда кадры готовы — иначе догрузка дёргала бы ленту */
+  opacity:0;transform:scale(.965);
+  transition:opacity .7s ease,transform .9s cubic-bezier(.22,.61,.36,1)}
+.case-feed.ready{opacity:1;transform:scale(1)}
+.case-head{grid-column:1/-1;text-align:center;margin-bottom:3vh}
+.case-head h3{font-family:var(--serif);font-weight:400;font-size:clamp(34px,5vw,64px);
+  text-transform:uppercase;line-height:1}
+.case-head .case-cat{margin-top:12px;font-size:10.5px;letter-spacing:.26em;
+  text-transform:uppercase;color:var(--ink-dim)}
+/* кадры сохраняют свою пропорцию: широкие — во всю ширину, квадратные/вертикальные — по два в ряд */
+.case-feed img{width:100%;height:auto;display:block;grid-column:span 2;
+  border-radius:16px;border:1px solid rgba(234,231,224,.1);
+  box-shadow:0 24px 80px rgba(0,0,0,.55)}
+.case-feed img.narrow{grid-column:span 1}
+.case-close{position:fixed;top:18px;right:24px;z-index:95;
+  background:rgba(10,10,10,.35);
+  -webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);
+  border:1px solid rgba(234,231,224,.16);color:var(--ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  font-family:var(--sans);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  padding:11px 22px;border-radius:26px;cursor:pointer;
+  transition:background .3s,color .3s}
+.case-close:hover{background:var(--ink);color:#000}
+/* контент сайта чуть «отдаляется», когда открыт кейс */
+/* фон целиком скрыт оверлеем кейса, поэтому его не двигаем — меньше лишнего движения */
+body.case-open{overflow:hidden}
+
+/* ============ CONTACT ============ */
+.contact{min-height:85vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.contact h2{font-family:var(--serif);font-weight:400;font-size:clamp(48px,10vw,160px);
+  text-transform:uppercase;line-height:.98}
+.contact .email{margin-top:6vh;font-size:clamp(14px,2vw,20px);letter-spacing:.12em;
+  color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink-faint);
+  padding-bottom:6px;transition:border-color .3s}
+.contact .email:hover{border-color:var(--gold)}
+.socials{margin-top:7vh;display:flex;gap:30px;flex-wrap:wrap;justify-content:center}
+.socials a{font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;transition:color .3s}
+.socials a:hover{color:var(--gold)}
+footer{display:flex;justify-content:space-between;padding:24px 28px;
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint)}
+
+@media (max-width:900px){
+  .grid-free{display:block;padding:8vh 24px}
+  .tile{margin:0 0 10vh;aspect-ratio:auto!important}
+  .tile:nth-child(odd){width:88%}
+  .tile:nth-child(even){width:74%;margin-left:auto}
+  #siteTip,#logoTip{display:none}
+  .corner-clock{display:none}
+  .dock{bottom:16px}
+  .dock-inner{gap:2px;padding:6px}
+  .dock a{padding:9px 12px;font-size:9.5px;letter-spacing:.12em}
+}
+</style>
+</head>
+<body>
+
+<!-- НАСТОЯЩИЕ внутренние тень и блик для текста (через text-shadow невозможно —
+     он всегда рисуется снаружи глифа, поэтому берём SVG-фильтр) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="chromeBevel" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+    <!-- заливка букв всего 10%, поэтому восстанавливаем полную форму глифа,
+         иначе тень и блик считались бы от прозрачной альфы и были бы едва видны -->
+    <feComponentTransfer in="SourceAlpha" result="shape">
+      <feFuncA type="linear" slope="25"/>
+    </feComponentTransfer>
+    <!-- внутренняя тень по нижней кромке (значения в px, текст крупный) -->
+    <feOffset in="shape" dy="-5" result="o1"/>
+    <feGaussianBlur in="o1" stdDeviation="3" result="b1"/>
+    <feComposite operator="out" in="shape" in2="b1" result="inv1"/>
+    <feFlood flood-color="#000" flood-opacity="0.9" result="c1"/>
+    <feComposite operator="in" in="c1" in2="inv1" result="innerShadow"/>
+    <!-- внутренний блик по верхней кромке -->
+    <feOffset in="shape" dy="4" result="o2"/>
+    <feGaussianBlur in="o2" stdDeviation="2" result="b2"/>
+    <feComposite operator="out" in="shape" in2="b2" result="inv2"/>
+    <feFlood flood-color="#ffffff" flood-opacity="0.95" result="c2"/>
+    <feComposite operator="in" in="c2" in2="inv2" result="innerLight"/>
+    <feMerge>
+      <feMergeNode in="SourceGraphic"/>
+      <feMergeNode in="innerShadow"/>
+      <feMergeNode in="innerLight"/>
+    </feMerge>
+  </filter>
+</svg>
+
+<!-- PRELOADER -->
+<div id="loader">
+  <div class="loader-num" id="pct">000</div>
+  <div class="loader-title" id="loaderTitle"><span class="glass-text" data-t="The">The</span><span class="glass-text" data-t="World">World</span><span class="glass-text" data-t="of">of</span><span class="p" data-t="P.">P.</span></div>
+</div>
+
+<!-- ВЕРХНЯЯ ПОЛОСА: имя · бегущая строка · часы -->
+<header id="topbar">
+  <a class="corner-name" id="cornerName" href="#top">P. Erenburg</a>
+  <div class="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
+  <div class="corner-clock" id="headClock">Yerevan, Armenia&nbsp;·&nbsp;—:— (GMT+4)</div>
+</header>
+
+<!-- LIQUID GLASS DOCK -->
+<nav class="dock" id="dock" aria-label="Navigation">
+  <span class="dock-glass"></span>
+  <span class="dock-inner">
+    <a href="#portfolio">Portfolio</a>
+    <a href="#experience">Experience</a>
+    <a href="#contact">Contact</a>
+    <span class="dock-sep"></span>
+    <a class="dock-cta" href="https://www.linkedin.com/in/erenburgh/" target="_blank" rel="noopener">P.&nbsp;Erenburg <i>↗</i></a>
+  </span>
+</nav>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-part" id="introA">
+    <div class="txt">
+      <p class="lead"><em class="unit">Creative Director</em> &amp; <em class="unit">Multidisciplinary Lead&nbsp;Designer</em>.<br>Proof that one creative mind can be great at <em class="gold unit">many&nbsp;crafts</em>.</p>
+    </div>
+  </div>
+  <div class="intro-part" id="introB">
+    <div class="txt">
+      <p class="lead" id="textB">For the past 9+&nbsp;years I’ve been designing with the world’s leading studios —
+        <span class="pair"><a class="studio unit" data-site="https://redcollar.co" href="https://redcollar.co" target="_blank" rel="noopener">Red&nbsp;Collar</a><sup class="award unit">40+ Awards</sup></span>,
+        <span class="pair"><a class="studio unit" data-site="https://pinkman.ru" href="https://pinkman.ru" target="_blank" rel="noopener">Pinkman</a><sup class="award unit">10+ Awards</sup></span>,
+        <span class="pair"><a class="studio unit" data-site="https://pearmill.com" href="https://pearmill.com" target="_blank" rel="noopener">Pearmill&nbsp;Inc</a><sup class="award unit">100+ Clients</sup></span>,
+        <span class="pair"><a class="studio unit" data-site="https://dizzaract.com" href="https://dizzaract.com" target="_blank" rel="noopener">Dizzaract</a><sup class="award unit">AAA Gamedev Studio</sup></span>,
+        <a class="studio unit" data-site="" href="#" rel="noopener">AUDAX</a>
+        — creating work for brands like
+        <span class="brand-h unit" data-logo="Autodesk" data-domain="autodesk.com">Autodesk</span>,
+        <span class="brand-h unit" data-logo="Ramp" data-domain="ramp.com">Ramp</span>,
+        <span class="brand-h unit" data-logo="Sber" data-domain="sber.ru">Sber</span>,
+        <span class="brand-h unit" data-logo="S7 Airlines" data-domain="s7.ru">S7</span>,
+        <span class="brand-h unit" data-logo="X5 Group" data-domain="x5.ru">X5</span>,
+        <span class="brand-h unit" data-logo="Guggenheim" data-domain="guggenheim.org">Guggenheim&nbsp;Museum</span>,
+        <span class="brand-h unit" data-logo="Metro C&C" data-domain="metro-cc.ru">Metro&nbsp;C&amp;C</span>,
+        <span class="brand-h unit" data-logo="Amway" data-domain="amway.com">Amway</span> and
+        <span class="brand-h unit" data-logo="Limex" data-domain="">Limex</span>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="siteTip"><img class="shot" alt=""><div class="cap"></div></div>
+<div id="logoTip"><div class="card"><img alt=""><span class="fallback"></span></div></div>
+
+<!-- CASE VIEWER (data-lenis-prevent — чтобы внутри работал родной скролл) -->
+<div id="caseView" data-lenis-prevent>
+  <button class="case-close" id="caseClose">Close ✕</button>
+  <div class="case-feed" id="caseFeed"></div>
+</div>
+
+<!-- всё, что «отдаляется» при открытии кейса -->
+<div class="offset">
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="pf-head">
+    <h2 id="pfTitle"><span>Portfolio</span></h2>
+    <div class="filters" id="filters">
+      <button data-cat="all" class="active">All</button>
+      <button data-cat="branding">Branding</button>
+      <button data-cat="product">Product</button>
+      <button data-cat="gamedev">Gamedev</button>
+    </div>
+  </div>
+  <div class="grid-free" id="grid"></div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="exp-label"><span>Experience</span><span class="range">2016 → Now</span></div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">Dizzaract</span><span class="exp-years">2023 → Now</span><span class="exp-plus">+</span>
+      <span class="exp-role">Lead of Game UX/UI → Head of Creative</span>
+    </button>
+    <div class="exp-desc"><div><p>Built the brand system for an AI × gaming ecosystem and led UX/UI for Farcana — a AAA competitive shooter: game interfaces, HUD, key art integration and marketing visuals. Grew from Lead of Game UX/UI to Head of Creative, shaping the creative team along the way.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">Red Collar</span><span class="exp-years">2023</span><span class="exp-plus">+</span>
+      <span class="exp-role">Senior Brand Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>Brand design at one of the most awarded digital studios in the world (Webby winner, 40+ international awards): identity systems and creative concepts for digital products.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">Pearmill Inc.</span><span class="exp-years">2022 → 2023</span><span class="exp-plus">+</span>
+      <span class="exp-role">Lead Visual Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>Led visual design at a New York performance-marketing agency: ad creatives, key visuals and landing systems for hyper-growth startups.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">kampus.design</span><span class="exp-years">2021 → 2022</span><span class="exp-plus">+</span>
+      <span class="exp-role">Art Director / Senior Brand &amp; Web Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>Art direction and senior-level brand & web design: identities, websites and design systems for studio clients.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">Pinkman</span><span class="exp-years">2021</span><span class="exp-plus">+</span>
+      <span class="exp-role">Senior UX/UI Product Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>Product design for corporate clients — banking, retail and services: interfaces, design systems and communication design.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">Newmen</span><span class="exp-years">2020 → 2021</span><span class="exp-plus">+</span>
+      <span class="exp-role">Senior Media Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>Editorial and media design: layouts, visual systems and key visuals for media projects.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">aim</span><span class="exp-years">2019 → 2020</span><span class="exp-plus">+</span>
+      <span class="exp-role">Junior → Middle UX/UI Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>UX/UI for digital products — first agency years, growing from junior to middle.</p></div></div>
+  </div>
+  <div class="exp-row">
+    <button class="exp-head">
+      <span class="exp-co">Freelance</span><span class="exp-years">2016 → 2019</span><span class="exp-plus">+</span>
+      <span class="exp-role">Junior Designer</span>
+    </button>
+    <div class="exp-desc"><div><p>First years in the craft: logos, identities and web design for small businesses.</p></div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <h2>Let’s create</h2>
+  <a class="email" href="mailto:paul.erenburgh@gmail.com">paul.erenburgh@gmail.com</a>
+  <div class="socials">
+    <a href="https://www.behance.net/erenburgh" target="_blank" rel="noopener">Behance</a>
+    <a href="https://t.me/erenburgh" target="_blank" rel="noopener">Telegram</a>
+    <a href="https://www.linkedin.com/in/erenburgh/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 P. Erenburg</span>
+  <span>Yerevan, Armenia</span>
+</footer>
+
+</div><!-- /offset -->
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+/* ---------- бегущая строка: дисциплины по кругу через точку ---------- */
+const TICKER_WORDS = ['Branding','Game Design','Product Design','Creative Direction','Art Direction','Game Interfaces','Package','Strategy'];
+const tickerUnit = TICKER_WORDS.map(w=>`<span>${w}</span><span>·</span>`).join('');
+const tickerTrack = document.getElementById('tickerTrack');
+tickerTrack.innerHTML = tickerUnit.repeat(4);
+let tickerX = 0;
+function marqueeStep(dtMs){
+  tickerX -= Math.min(dtMs,100) * 0.035;
+  const half = tickerTrack.scrollWidth / 2;
+  if(half > 0 && -tickerX >= half) tickerX += half;
+  tickerTrack.style.transform = `translate3d(${tickerX}px,0,0)`;
+}
+function startMarquee(){
+  if(window.gsap){ gsap.ticker.add((t,dt)=>marqueeStep(dt)); }
+  else{ let prev=performance.now(); (function loop(now){ marqueeStep(now-prev); prev=now; requestAnimationFrame(loop); })(prev); }
+}
+startMarquee();
+
+/* ---------- утилиты ---------- */
+function shotUrl(site){ return 'https://s.wordpress.com/mshots/v1/' + encodeURIComponent(site) + '?w=680'; }
+
+/* ---------- разбивка текста на слова ---------- */
+function wrapWords(root){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  while(walker.nextNode()){
+    const n = walker.currentNode;
+    if(n.textContent.trim() && !n.parentElement.closest('.unit')) nodes.push(n);
+  }
+  nodes.forEach(n=>{
+    const frag = document.createDocumentFragment();
+    n.textContent.split(/(\s+)/).forEach(part=>{
+      if(part === '') return;
+      if(/^\s+$/.test(part)){ frag.appendChild(document.createTextNode(part)); return; }
+      const s = document.createElement('span');
+      s.className = 'w'; s.textContent = part;
+      frag.appendChild(s);
+    });
+    n.parentNode.replaceChild(frag, n);
+  });
+  root.querySelectorAll('.unit').forEach(u=>u.classList.add('w'));
+  return [...root.querySelectorAll('.w')];
+}
+const wordsA = wrapWords(document.querySelector('#introA .txt'));
+const wordsB = wrapWords(document.getElementById('textB'));
+
+/* ---------- превью сайтов (студии + опыт) ---------- */
+const siteTip = document.getElementById('siteTip');
+const siteShot = siteTip.querySelector('.shot');
+const siteCap = siteTip.querySelector('.cap');
+document.querySelectorAll('[data-site]').forEach(el=>{
+  const site = el.dataset.site;
+  if(site){ const pre = new Image(); pre.src = shotUrl(site); }
+  el.addEventListener('mouseenter', ()=>{
+    if(!site) return;
+    siteShot.src = shotUrl(site);
+    siteCap.textContent = site.replace(/^https?:\/\//,'');
+    siteTip.classList.add('show');
+  });
+  el.addEventListener('mouseleave', ()=>siteTip.classList.remove('show'));
+  el.addEventListener('mousemove', e=>{
+    siteTip.style.left = Math.min(e.clientX + 18, innerWidth - 360) + 'px';
+    siteTip.style.top  = Math.min(e.clientY + 18, innerHeight - 260) + 'px';
+  });
+});
+
+/* ---------- лого брендов (clearbit → unavatar → текст) ---------- */
+const logoTip = document.getElementById('logoTip');
+const logoImg = logoTip.querySelector('img');
+const logoFallback = logoTip.querySelector('.fallback');
+document.querySelectorAll('.brand-h').forEach(el=>{
+  el.addEventListener('mouseenter', ()=>{
+    const domain = el.dataset.domain;
+    logoFallback.style.display = 'none';
+    logoImg.style.display = 'block';
+    logoImg.dataset.step = 'clearbit';
+    logoImg.dataset.domain = domain;
+    logoFallback.textContent = el.dataset.logo;
+    if(domain) logoImg.src = 'https://logo.clearbit.com/' + domain + '?size=256';
+    else { logoImg.style.display='none'; logoFallback.style.display='block'; }
+    logoTip.classList.add('show');
+  });
+  el.addEventListener('mouseleave', ()=>logoTip.classList.remove('show'));
+  el.addEventListener('mousemove', e=>{
+    logoTip.style.left = Math.min(e.clientX + 18, innerWidth - 210) + 'px';
+    logoTip.style.top  = Math.min(e.clientY + 18, innerHeight - 140) + 'px';
+  });
+});
+logoImg.addEventListener('error', ()=>{
+  if(logoImg.dataset.step === 'clearbit' && logoImg.dataset.domain){
+    logoImg.dataset.step = 'unavatar';
+    logoImg.src = 'https://unavatar.io/' + logoImg.dataset.domain;
+  }else{
+    logoImg.style.display = 'none';
+    logoFallback.style.display = 'block';
+  }
+});
+
+/* ---------- проекты (спарсены из Notion, порядок перемешан) ---------- */
+const PROJECTS = [
+  {t:'Farcana', cat:'gamedev', imgs:['assets/farcana/28.jpg','assets/farcana/29.png','assets/farcana/30.png','assets/farcana/31.png','assets/farcana/32.jpg']},
+  {t:'Enside', cat:'branding', imgs:['assets/enside/37.jpeg','assets/enside/38.jpeg','assets/enside/39.jpeg','assets/enside/40.jpeg','assets/enside/41.jpeg','assets/enside/42.jpeg']},
+  {t:'X5 Marketing', cat:'product', imgs:['assets/x5/98.jpg','assets/x5/99.jpg','assets/x5/100.jpg','assets/x5/101.jpg','assets/x5/102.jpg']},
+  {t:'Dizzaract', cat:'branding', imgs:['assets/dizzaract/01.png','assets/dizzaract/02.png','assets/dizzaract/03.jpg','assets/dizzaract/04.png','assets/dizzaract/05.png','assets/dizzaract/06.png']},
+  {t:'KINEZ', cat:'product', imgs:['assets/kinez/113.jpg','assets/kinez/114.jpg','assets/kinez/115.jpg','assets/kinez/116.jpg']},
+  {t:'METRO C&C', cat:'branding', imgs:['assets/metro/52.jpg','assets/metro/53.jpg','assets/metro/54.jpg','assets/metro/55.jpeg','assets/metro/56.jpg','assets/metro/57.jpg','assets/metro/58.jpg','assets/metro/59.jpg']},
+  {t:'Plus Bet', cat:'gamedev', imgs:['assets/plusbet/33.png','assets/plusbet/34.png','assets/plusbet/35.png']},
+  {t:'Pearmill Identity', cat:'branding', imgs:['assets/pearmill-id/43.jpeg','assets/pearmill-id/44.png','assets/pearmill-id/45.png','assets/pearmill-id/46.png','assets/pearmill-id/47.png']},
+  {t:'Reward Direct', cat:'product', imgs:['assets/reward/103.png','assets/reward/104.png','assets/reward/105.png']},
+  {t:'NUAR', cat:'branding', imgs:['assets/nuar/74.jpg','assets/nuar/75.jpg','assets/nuar/76.jpg','assets/nuar/77.jpg','assets/nuar/78.jpg','assets/nuar/79.jpg']},
+  {t:'ivpay', cat:'product', imgs:['assets/ivpay/25.png','assets/ivpay/26.png','assets/ivpay/27.png']},
+  {t:'Amway', cat:'branding', imgs:['assets/amway/60.jpg','assets/amway/61.jpg','assets/amway/62.jpg','assets/amway/63.jpg','assets/amway/64.jpg','assets/amway/65.jpg']},
+  {t:'Tank Battle', cat:'gamedev', imgs:['assets/tankbattle/36.png']},
+  {t:'Everie Woman', cat:'branding', imgs:['assets/everie/48.png','assets/everie/49.gif','assets/everie/50.gif','assets/everie/51.gif']},
+  {t:'Carindust', cat:'product', imgs:['assets/carindust/108.jpg','assets/carindust/109.jpg','assets/carindust/110.jpg','assets/carindust/111.jpg','assets/carindust/112.jpg']},
+  {t:'GAMED', cat:'branding', imgs:['assets/gamed/07.png','assets/gamed/08.png','assets/gamed/09.png','assets/gamed/10.png','assets/gamed/11.png','assets/gamed/12.png']},
+  {t:'Uralsib Bank', cat:'product', imgs:['assets/uralsib/106.jpg','assets/uralsib/107.jpg']},
+  {t:'MEDSI', cat:'branding', imgs:['assets/medsi/66.png','assets/medsi/67.png','assets/medsi/68.png','assets/medsi/69.png']},
+  {t:'Dribbble Shots', cat:'product', imgs:['assets/dribbble/117.png','assets/dribbble/118.png','assets/dribbble/119.png']},
+  {t:'AI Identity — NDA', cat:'branding', imgs:['assets/nda-ai/13.png','assets/nda-ai/14.png','assets/nda-ai/15.png','assets/nda-ai/16.png','assets/nda-ai/17.png','assets/nda-ai/18.png']},
+  {t:'Pearmill Website', cat:'product', imgs:['assets/pearmill-web/97.jpg']},
+  {t:'Kirovsky Zavod', cat:'branding', imgs:['assets/kirovsky/70.jpg','assets/kirovsky/71.jpg','assets/kirovsky/72.jpg','assets/kirovsky/73.jpg']},
+  {t:'Fintech Media — NDA', cat:'branding', imgs:['assets/nda-fintech/19.png','assets/nda-fintech/20.png','assets/nda-fintech/21.png','assets/nda-fintech/22.png','assets/nda-fintech/23.png','assets/nda-fintech/24.png']},
+];
+/* реальные пропорции обложек (ширина/высота), замерены по файлам */
+const COVER_AR = {
+  'Farcana':1.78,'Enside':1.50,'X5 Marketing':1.78,'Dizzaract':1.78,'KINEZ':1.78,
+  'METRO C&C':1.59,'Plus Bet':1.00,'Pearmill Identity':1.75,'Reward Direct':1.78,
+  'NUAR':1.78,'ivpay':1.78,'Amway':1.59,'Tank Battle':0.66,'Everie Woman':2.17,
+  'Carindust':1.78,'GAMED':1.78,'Uralsib Bank':1.78,'MEDSI':1.78,'Dribbble Shots':1.33,
+  'AI Identity — NDA':1.78,'Pearmill Website':0.66,'Kirovsky Zavod':1.78,'Fintech Media — NDA':1.78
+};
+
+/* ---------- сетка ---------- */
+const grid = document.getElementById('grid');
+PROJECTS.forEach((p,i)=>{
+  const ar = COVER_AR[p.t] || 1.78;
+  const f = document.createElement('figure');
+  f.className = 'tile' + (ar < 0.9 ? ' tile-tall' : '');
+  f.dataset.cat = p.cat;
+  f.dataset.ar = ar;
+  f.innerHTML = `<img class="tile-cover" src="${p.imgs[0]}" alt="${p.t}" loading="lazy">
+    <img class="tile-preview pv1" alt="" aria-hidden="true">
+    <img class="tile-preview pv2" alt="" aria-hidden="true">
+    <figcaption><span class="tile-name">${p.t}</span></figcaption>`;
+  f.addEventListener('click', ()=>openCase(p));
+  bindTileHover(f, p);
+  grid.appendChild(f);
+});
+
+/* ---------- ховер карточки: имя за курсором + кручение кадров проекта ---------- */
+function bindTileHover(tile, p){
+  const nameEl = tile.querySelector('.tile-name');
+  const layers = [tile.querySelector('.pv1'), tile.querySelector('.pv2')];
+  /* крутим не больше 6 кадров — иначе при быстром проходе по карточкам
+     браузер начинает грузить сотни картинок и анимации начинают дёргаться */
+  const frames = p.imgs.slice(0, 6);
+  let timer = null, startTimer = null, idx = 0, active = 0;
+
+  /* подгружаем только следующий кадр, а не весь проект разом */
+  function warm(i){ const im = new Image(); im.decoding = 'async'; im.src = frames[i % frames.length]; }
+
+  function step(){
+    idx = (idx + 1) % frames.length;
+    const next = layers[active ^ 1];
+    next.src = frames[idx];
+    next.classList.add('on');
+    layers[active].classList.remove('on');
+    active ^= 1;
+    warm(idx + 1);
+  }
+
+  /* плавное слежение за курсором: цель tx/ty, текущее cx/cy, догоняем каждый кадр.
+     CSS-transition тут не годится — каждый mousemove перезапускал бы её и текст дребезжал */
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+  function target(e){
+    const r = tile.getBoundingClientRect();
+    /* держим текст внутри карточки */
+    const maxX = Math.max(0, (r.width  - nameEl.offsetWidth)  / 2 - 10);
+    const maxY = Math.max(0, (r.height - nameEl.offsetHeight) / 2 - 10);
+    tx = Math.max(-maxX, Math.min(maxX, e.clientX - r.left - r.width  / 2));
+    ty = Math.max(-maxY, Math.min(maxY, e.clientY - r.top  - r.height / 2));
+  }
+  function loop(){
+    cx += (tx - cx) * 0.14;
+    cy += (ty - cy) * 0.14;
+    nameEl.style.transform = `translate3d(${cx.toFixed(2)}px,${cy.toFixed(2)}px,0)`;
+    raf = requestAnimationFrame(loop);
+  }
+
+  tile.addEventListener('mouseenter', e=>{
+    target(e);
+    cx = tx; cy = ty;                            /* на входе — сразу под курсор, без подъезда */
+    nameEl.style.transform = `translate3d(${cx}px,${cy}px,0)`;
+    if(!raf) raf = requestAnimationFrame(loop);
+    tile.classList.add('hovered');
+    if(frames.length < 2) return;
+    warm(1);
+    /* даём разглядеть обложку, потом начинаем крутить кадры */
+    startTimer = setTimeout(()=>{
+      step();
+      timer = setInterval(step, 1400);
+    }, 650);
+  });
+  tile.addEventListener('mousemove', target);
+  tile.addEventListener('mouseleave', ()=>{
+    clearTimeout(startTimer); clearInterval(timer);
+    startTimer = timer = null; idx = 0;
+    if(raf){ cancelAnimationFrame(raf); raf = null; }
+    tile.classList.remove('hovered');
+    layers.forEach(l=>l.classList.remove('on'));
+  });
+}
+const tiles = [...grid.querySelectorAll('.tile')];
+/* ---------- раскладчик: контейнер повторяет пропорцию картинки ----------
+   ширина по классу пропорции: ультраширокие 6 колонок, широкие 4, квадраты и вертикальные 3;
+   ряды пакуются по 12 колонок (макс 3 в ряду), стартовый отступ и сдвиги чередуются */
+/* пропорция контейнера = пропорция картинки, а РАЗМЕР варьируется:
+   один 16:9 крупный на пол-экрана, другой мелкий — сетка не читается как таблица */
+const WIDE_SPANS   = [7,4,6,5,8,4,5,6];   /* для 16:9 и шире */
+const NARROW_SPANS = [3,4,3,5,4,3];       /* для квадратов и вертикальных */
+const ROW_START    = [1,2,1,3,1,2];
+/* детерминированный «рандом» — раскладка стабильна между перерисовками */
+function rnd(i){ return ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1; }
+function layout(){
+  const visible = tiles.filter(t=>!t.classList.contains('hide'));
+  const desktop = innerWidth > 900;
+  let wI = 0, nI = 0, row = 0, col = ROW_START[0], item = 0;
+  visible.forEach((t,i)=>{
+    if(!desktop){
+      t.style.gridColumn = t.style.aspectRatio = t.style.marginTop = '';
+      return;
+    }
+    const ar = parseFloat(t.dataset.ar);
+    const span = ar >= 1.4
+      ? WIDE_SPANS[wI++ % WIDE_SPANS.length]
+      : NARROW_SPANS[nI++ % NARROW_SPANS.length];
+    if(col + span > 13 || item >= 3){
+      row++; col = ROW_START[row % ROW_START.length]; item = 0;
+    }
+    t.style.gridColumn = col + ' / span ' + span;
+    t.style.aspectRatio = String(Math.max(ar, 0.66)); /* сверхвысокие ограничиваем */
+    t.style.marginTop = Math.round(rnd(i) * 10) + 'vh';
+    col += span; item++;
+  });
+  return visible;
+}
+layout();
+window.addEventListener('resize', layout);
+
+const filterBtns = document.querySelectorAll('#filters button');
+filterBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    filterBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    tiles.forEach(t=>t.classList.toggle('hide', cat!=='all' && t.dataset.cat!==cat));
+    const visible = layout();
+    if(window.gsap){
+      gsap.fromTo(visible,{opacity:0,y:36},{opacity:1,y:0,duration:.8,stagger:.05,ease:'power3.out',overwrite:true});
+      window.ScrollTrigger && ScrollTrigger.refresh();
+    }
+  });
+});
+
+/* ---------- вьювер кейса ---------- */
+const caseView = document.getElementById('caseView');
+const caseFeed = document.getElementById('caseFeed');
+function openCase(p){
+  let html = `<div class="case-head"><h3>${p.t}</h3><div class="case-cat">${p.cat} · ${p.imgs.length} ${p.imgs.length===1?'frame':'frames'}</div></div>`;
+  p.imgs.forEach(src=>{ html += `<img src="${src}" alt="${p.t}">`; });
+  caseFeed.innerHTML = html;
+  caseFeed.classList.remove('ready');
+  caseView.scrollTop = 0;
+  caseView.classList.add('open');
+  document.body.classList.add('case-open');
+  window.__lenis && window.__lenis.stop();
+
+  /* раскладка по факту: широкий кадр — во всю ширину, квадратный/вертикальный — половина,
+     поэтому две квадратные картинки сами встают в один ряд */
+  const imgs = [...caseFeed.querySelectorAll('img')];
+  const settle = img=>{
+    if(!img.naturalWidth) return;
+    img.classList.toggle('narrow', img.naturalWidth / img.naturalHeight < 1.4);
+  };
+  const waits = imgs.map(img=> img.complete
+    ? Promise.resolve(settle(img))
+    : new Promise(res=>{
+        img.addEventListener('load', ()=>{ settle(img); res(); }, {once:true});
+        img.addEventListener('error', res, {once:true});
+      }));
+  /* показываем ленту, когда кадры разложились; ждём не дольше 1.5с */
+  Promise.race([Promise.all(waits), new Promise(r=>setTimeout(r,1500))])
+    .then(()=>setTimeout(()=>caseFeed.classList.add('ready'), 40));
+}
+function closeCase(){
+  caseView.classList.remove('open');
+  document.body.classList.remove('case-open');
+  window.__lenis && window.__lenis.start();
+}
+document.getElementById('caseClose').addEventListener('click', closeCase);
+caseView.addEventListener('click', e=>{ if(e.target === caseView) closeCase(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && caseView.classList.contains('open')) closeCase(); });
+
+/* ---------- аккордеон опыта ---------- */
+document.querySelectorAll('.exp-head').forEach(h=>{
+  h.addEventListener('click', ()=>h.parentElement.classList.toggle('open'));
+});
+
+/* ---------- preloader: цифры → The World of P → мейнскрин ---------- */
+const pctEl = document.getElementById('pct');
+const loaderTitle = document.getElementById('loaderTitle');
+let p = 0;
+const tick = setInterval(()=>{
+  p = Math.min(100, p + Math.ceil(Math.random()*9));
+  const s = String(p).padStart(3,'0');
+  /* каждая цифра — стеклянный спан; ведущий ноль прозрачнее, «100» — целиком белое */
+  pctEl.innerHTML = s.split('').map((ch,i)=>
+    `<span class="glass-text${(i===0 && p<100)?' dim':''}" data-t="${ch}">${ch}</span>`).join('');
+  if(p>=100){
+    clearInterval(tick);
+    setTimeout(()=>{ pctEl.classList.add('out'); }, 300);
+    setTimeout(()=>{ loaderTitle.classList.add('show'); }, 750);
+    setTimeout(()=>{ loaderTitle.classList.add('out'); }, 2450);
+    setTimeout(enter, 3400);
+  }
+}, 80);
+
+function enter(){
+  document.getElementById('loader').classList.add('done');
+  document.getElementById('topbar').classList.add('on');
+  wordsA.forEach((w,i)=>setTimeout(()=>w.classList.add('on'), 500 + i*55));
+  setTimeout(()=>{ document.getElementById('dock').classList.add('on'); }, 1600);
+}
+
+/* ---------- интро-сцена: переход A→B по времени, триггер — скролл ---------- */
+const introA = document.getElementById('introA');
+const introB = document.getElementById('introB');
+let introState = 'A';
+let bTimeouts = [];
+function clearB(){ bTimeouts.forEach(clearTimeout); bTimeouts=[]; }
+
+function toB(){
+  introState = 'B';
+  clearB();
+  if(window.gsap){
+    gsap.to(introA,{opacity:0,filter:'blur(12px)',duration:.65,ease:'power2.in',
+      onComplete(){ introA.style.visibility='hidden'; }});
+  }else{ introA.style.opacity=0; introA.style.visibility='hidden'; }
+  introB.style.visibility='visible';
+  introB.style.opacity='1';
+  introB.style.filter='';
+  wordsB.forEach((w,i)=>{
+    bTimeouts.push(setTimeout(()=>w.classList.add('on'), 450 + i*45));
+  });
+}
+function toA(){
+  introState = 'A';
+  clearB();
+  wordsB.forEach(w=>w.classList.remove('on'));
+  introB.style.opacity='0';
+  introB.style.visibility='hidden';
+  introB.style.filter='';
+  introA.style.visibility='visible';
+  if(window.gsap){
+    gsap.to(introA,{opacity:1,filter:'blur(0px)',duration:.6,ease:'power2.out'});
+  }else{ introA.style.opacity=1; }
+}
+
+/* ---------- smooth scroll + триггеры ---------- */
+if(window.gsap && window.ScrollTrigger){
+  gsap.registerPlugin(ScrollTrigger);
+
+  let lenis = null;
+  if(window.Lenis){
+    lenis = new Lenis({lerp:.09});
+    window.__lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t=>lenis.raf(t*1000));
+    gsap.ticker.lagSmoothing(0);
+    document.querySelectorAll('.dock a, .corner-name').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href');
+        if(id.startsWith('#')){ e.preventDefault(); lenis.scrollTo(id==='#top'?0:id,{duration:1.4}); }
+      });
+    });
+  }
+
+  ScrollTrigger.create({
+    trigger:'#intro', start:'top top', end:'+=130%', pin:true,
+    anticipatePin:1, pinSpacing:true, invalidateOnRefresh:true,
+    onUpdate(self){
+      const pr = self.progress;
+      if(pr > .1 && introState === 'A') toB();
+      else if(pr <= .1 && introState === 'B') toA();
+      /* второй блок уходит так же, как первый: блюр + фейд, к концу пина */
+      if(introState === 'B'){
+        const out = gsap.utils.clamp(0, 1, (pr - .72) / .26);
+        introB.style.opacity = String(1 - out);
+        introB.style.filter = out ? `blur(${(out * 14).toFixed(1)}px)` : '';
+      }
+    }
+  });
+
+  gsap.from('#pfTitle span',{yPercent:112,duration:1.1,ease:'power4.out',
+    scrollTrigger:{trigger:'#pfTitle',start:'top 85%'}});
+  gsap.from('#filters button',{opacity:0,y:20,duration:.7,stagger:.08,ease:'power3.out',
+    scrollTrigger:{trigger:'#filters',start:'top 90%'}});
+
+  tiles.forEach(el=>{
+    gsap.from(el,{opacity:0,y:70,duration:1.2,ease:'power3.out',
+      scrollTrigger:{trigger:el,start:'top 94%',once:true}});
+  });
+
+  document.querySelectorAll('.exp-row').forEach((el,i)=>{
+    gsap.from(el,{opacity:0,y:26,duration:.8,delay:(i%8)*.04,ease:'power3.out',
+      scrollTrigger:{trigger:el,start:'top 92%',once:true}});
+  });
+
+  document.querySelectorAll('.contact h2,.contact .email,.socials').forEach(el=>{
+    gsap.from(el,{opacity:0,y:40,duration:1,ease:'power3.out',
+      scrollTrigger:{trigger:el,start:'top 90%'}});
+  });
+
+  /* картинки догружаются и меняют высоту страницы — без этого координаты пина
+     устаревают и на «Portfolio» происходит прыжок */
+  let refreshTimer;
+  /* пока открыт кейс, .offset отмасштабирован — пересчёт в этот момент дал бы кривые координаты */
+  const safeRefresh = ()=>{ if(!document.body.classList.contains('case-open')) ScrollTrigger.refresh(); };
+  const softRefresh = ()=>{ clearTimeout(refreshTimer); refreshTimer = setTimeout(safeRefresh, 120); };
+  document.querySelectorAll('#grid .tile-cover').forEach(img=>{
+    if(!img.complete) img.addEventListener('load', softRefresh, {once:true});
+  });
+  window.addEventListener('load', safeRefresh);
+}
+
+/* ---------- local time (Ереван, с секундами; таймзона зафиксирована,
+   у гостя из любой точки мира показывает именно ереванское время) ---------- */
+function clock(){
+  const d = new Date().toLocaleTimeString('en-GB',
+    {timeZone:'Asia/Yerevan',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('headClock').innerHTML = 'Yerevan, Armenia&nbsp;·&nbsp;' + d + ' (GMT+4)';
+}
+clock(); setInterval(clock, 1000);
+</script>
+</body>
+</html>
