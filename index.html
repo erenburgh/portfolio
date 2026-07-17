@@ -20,6 +20,9 @@
   --sans:"Instrument Sans", sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+/* место под скроллбар резервируем всегда: иначе overflow:hidden при открытии
+   кейса убирает его и вся страница скачком уезжает вбок */
+html{scrollbar-gutter:stable}
 html.lenis{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 body{
@@ -42,25 +45,37 @@ a{color:inherit}
   font-family:var(--serif);font-weight:400;
   font-size:clamp(90px,15vw,240px);line-height:1;
   font-variant-numeric:tabular-nums;
-  transition:opacity .5s ease,filter .5s ease}
+  color:transparent; /* страховка: голый текст без .glass-text не должен мигать белым */
+  transition:opacity .85s ease,filter .85s ease}
 /* ХРОМ: металлический градиент по вертикали — светлый верх, тёмная полоса
    по линии горизонта, отражённый свет снизу; поверх — косая вспышка-блик */
 .glass-text{
   position:relative;display:inline-block;
+  /* тело буквы — 14%: сквозь него видно фон, объём держится на кромках = стекло */
   background:linear-gradient(178deg,
-    #ffffff 0%, #f4f6f8 10%, #d3d9e0 22%, #8b939d 38%,
-    #464d57 49%, #6f7681 52%, #b9c1ca 60%,
-    #eef1f4 70%, #ffffff 82%, #a7aeb7 100%);
+    rgba(255,255,255,.14) 0%, rgba(244,246,248,.14) 10%, rgba(211,217,224,.14) 22%,
+    rgba(139,147,157,.14) 38%, rgba(70,77,87,.14) 49%, rgba(111,118,129,.14) 52%,
+    rgba(185,193,202,.14) 60%, rgba(238,241,244,.14) 70%, rgba(255,255,255,.14) 82%,
+    rgba(167,174,183,.14) 100%);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
   /* настоящая внутренняя тень + внутренний блик по кромкам */
   filter:url(#chromeBevel) drop-shadow(0 0.012em 0.02em rgba(0,0,0,.75))}
-.glass-text::after{                               /* вспышка по хрому */
+.glass-text::after{ /* вспышка — узкая полоса: блик по грани, а не мягкая засветка буквы */
   content:attr(data-t);position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(112deg,transparent 36%,rgba(255,255,255,.98) 47%,rgba(255,255,255,.25) 52%,transparent 60%);
+  background:linear-gradient(112deg,transparent 43%,rgba(255,255,255,.26) 47%,rgba(255,255,255,.07) 50%,transparent 55%);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent}
 .loader-num .dim{opacity:.22;transition:opacity .4s ease}
+/* блик идёт системно слева направо (--sweep 0→100%).
+   ВАЖНО: только background-image, без шортката background — иначе он сбрасывает
+   background-clip:text и градиент ложится прямоугольником поверх букв */
+.live-glare::after{
+  background-image:linear-gradient(112deg,transparent 41%,rgba(255,255,255,.26) 47%,
+    rgba(255,255,255,.07) 51%,transparent 58%);
+  background-size:300% 100%;
+  background-position:var(--sweep,50%) 0;
+  -webkit-background-clip:text;background-clip:text}
 .loader-num.out{opacity:0;filter:blur(8px)}
 .loader-title{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
@@ -74,17 +89,22 @@ a{color:inherit}
 .loader-title .p{
   position:relative;display:inline-block;
   background:linear-gradient(178deg,
-    #fffaf0 0%, #f7e9c4 10%, #e6cf94 22%, #c19f52 38%,
-    #6f5820 49%, #9d7f38 52%, #d8b56a 60%,
-    #f2e2b6 70%, #fffdf6 82%, #bf9d55 100%);
+    rgba(255,241,186,.14) 0%, rgba(252,222,132,.14) 10%, rgba(240,198,96,.14) 22%,
+    rgba(206,158,50,.14) 38%, rgba(122,88,16,.14) 49%, rgba(174,132,38,.14) 52%,
+    rgba(233,187,80,.14) 60%, rgba(252,226,138,.14) 70%, rgba(255,244,196,.14) 82%,
+    rgba(207,160,58,.14) 100%);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent;
-  filter:url(#chromeBevel) drop-shadow(0 0.012em 0.02em rgba(0,0,0,.75))}
+  filter:url(#chromeBevelGold) drop-shadow(0 0.012em 0.02em rgba(0,0,0,.75))}
 .loader-title .p::after{
   content:attr(data-t);position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(112deg,transparent 36%,rgba(255,252,240,.98) 47%,rgba(255,246,214,.25) 52%,transparent 60%);
+  background:linear-gradient(112deg,transparent 36%,rgba(255,238,170,.5) 47%,rgba(255,228,140,.14) 52%,transparent 60%);
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent}
+/* блик заставки ходит за курсором (--sweep ставит JS на контейнер, вары наследуются в ::after) */
+.loader-title .glass-text::after,.loader-title .p::after{
+  background-size:280% 100%;
+  background-position:var(--sweep,50%) 0}
 .loader-title.show{opacity:1;filter:blur(0);transform:scale(1)}
 /* «пролетаем мимо фразы»: рост + расфокус */
 .loader-title.out{opacity:0;filter:blur(22px);transform:scale(2.1);
@@ -111,10 +131,11 @@ header.on{opacity:1}
 .ticker{flex:1;overflow:hidden;display:flex;align-items:center;
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 46px,#000 calc(100% - 46px),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 46px,#000 calc(100% - 46px),transparent)}
-.ticker-track{display:flex;white-space:nowrap;padding:13px 0;will-change:transform}
-.ticker-track span{font-family:var(--serif);font-style:normal;font-weight:400;
-  font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;
-  color:var(--ink);padding-right:52px}
+/* тот же стиль, что у PORTFOLIO / CONTACT и имени с часами — строка сидит в одну линию с ними */
+.ticker-track{display:flex;white-space:nowrap;padding:15px 0;will-change:transform}
+.ticker-track span{font-family:var(--sans);font-weight:500;
+  font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink);padding-right:48px}
 
 /* ============ LIQUID GLASS DOCK (Apple-style) ============ */
 .dock{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:70;
@@ -134,19 +155,33 @@ header.on{opacity:1}
   transition:background .35s,color .35s}
 .dock a:hover{background:rgba(255,255,255,.16)}
 .dock-sep{width:1px;height:22px;background:rgba(255,255,255,.22);margin:0 5px}
-.dock-cta i{font-style:normal;font-size:10px;color:var(--ink-dim);margin-left:6px;transition:color .35s}
-.dock-cta:hover i{color:var(--ink)}
+.dock-cta .ico-arrow{color:var(--ink-dim);width:9px;height:9px;vertical-align:0}
+.dock-cta:hover .ico-arrow{color:var(--ink);transform:translate(2px,-2px)}
 
 /* ============ INTRO ============ */
 #intro{height:100vh;position:relative;overflow:hidden}
+/* padding-bottom приподнимает связку «портрет + текст» к оптическому центру:
+   снизу висит док, и без этого композиция кажется опущенной */
 .intro-part{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  padding:0 7vw;will-change:opacity,filter}
+  padding:0 7vw 9vh;will-change:opacity,filter}
 .intro-part .txt{max-width:960px;text-align:center}
 .intro-part p.lead{
   font-family:var(--serif);font-size:clamp(25px,3.1vw,46px);line-height:1.3;
   color:var(--ink);font-weight:400}
 .intro-part em{font-style:italic}
 .intro-part .gold{color:var(--gold)}
+/* портрет: интерактивная стеклянная голова (Three.js, src/glass-head.js) —
+   псевдо-3D по карте глубины, наклоняется за курсором, по стеклу ходит
+   призматическая полоса-блик как на Let's create. <img> — фолбэк: без WebGL
+   (или при потере контекста) остаётся обычная статичная картинка */
+.hero-face{position:relative;display:block;margin:0 auto 5vh;
+  width:min(42vh,380px);aspect-ratio:1;isolation:isolate}
+.hero-face img,.hero-face canvas{position:absolute;inset:0;width:100%;height:100%}
+.face-base{object-fit:contain;display:block;
+  filter:brightness(.76)} /* = EXPOSURE в glass-head.js, чтобы фолбэк совпадал с канвасом */
+.hero-face canvas{opacity:0;transition:opacity .6s ease}
+.hero-face.live canvas{opacity:1}
+.hero-face.live .face-base{opacity:0;transition:opacity .6s ease}
 .intro-part .w{opacity:.06;filter:blur(10px);display:inline-block;
   transition:opacity .7s ease,filter .7s ease;will-change:filter}
 .intro-part .w.on{opacity:1;filter:blur(0)}
@@ -154,8 +189,14 @@ header.on{opacity:1}
 #introB{opacity:0;visibility:hidden}
 .studio{color:var(--ink);text-decoration:none;position:relative;white-space:nowrap;
   border-bottom:1px solid rgba(234,231,224,.35);transition:color .3s,border-color .3s;cursor:pointer}
-.studio::after{content:"\2197";font-size:.45em;vertical-align:super;margin-left:.18em;
-  color:var(--ink-dim);transition:color .3s}
+/* стрелка — SVG-маска, а не эмодзи: на мобильных ↗ подменялся системным эмодзи */
+.ico-arrow,.studio::after{
+  content:"";display:inline-block;width:.44em;height:.44em;
+  margin-left:.22em;vertical-align:.32em;
+  background-color:currentColor;transition:background-color .3s,transform .5s cubic-bezier(.22,.61,.36,1);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 9L9 3M9 3H4.2M9 3v4.8' fill='none' stroke='%23000' stroke-width='0.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 9L9 3M9 3H4.2M9 3v4.8' fill='none' stroke='%23000' stroke-width='0.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain}
+.studio::after{color:var(--ink-dim)}
 .studio:hover{color:var(--gold);border-color:var(--gold)}
 .studio:hover::after{color:var(--gold)}
 .award{font-family:var(--sans);font-size:.32em;letter-spacing:.14em;text-transform:uppercase;
@@ -182,18 +223,18 @@ header.on{opacity:1}
   transition:opacity .45s ease,filter .45s ease,transform .45s ease}
 #logoTip.show{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}
 #logoTip .card{background:#fff;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
-  border-radius:14px;overflow:hidden;border:1px solid rgba(234,231,224,.2);
+  border-radius:8px;overflow:hidden;border:1px solid rgba(234,231,224,.14);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 10px 40px rgba(0,0,0,.5)}
-#logoTip img{max-width:60%;max-height:52%;object-fit:contain;display:block}
+#logoTip img{width:100%;height:100%;object-fit:contain;display:block}
 #logoTip .fallback{font-family:var(--sans);font-weight:500;font-size:20px;color:#111;display:none}
 
 /* ============ PORTFOLIO ============ */
 section{position:relative;padding:0 28px}
 .pf-head{padding:16vh 28px 0;text-align:center}
+/* overflow:hidden убран — он обрезал заголовок при выезде снизу */
 .pf-head h2{
   font-family:var(--serif);font-weight:400;
-  font-size:clamp(56px,12vw,190px);line-height:1;text-transform:uppercase;
-  overflow:hidden}
+  font-size:clamp(56px,12vw,190px);line-height:1;text-transform:uppercase}
 .pf-head h2 span{display:inline-block}
 .filters{margin:5vh 0 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .filters button{
@@ -213,30 +254,51 @@ section{position:relative;padding:0 28px}
   display:grid;grid-template-columns:repeat(12,1fr);
   column-gap:3vw;row-gap:13vh;
   padding:12vh 4vw 8vh;align-items:start}
-.tile{position:relative;overflow:hidden;cursor:pointer;
-  border-radius:16px;border:1px solid rgba(234,231,224,.08);
+/* сама карточка НЕ обрезает — иначе имя не может выйти за её пределы.
+   Вход снизу вверх из блюра — на CSS-классе: снятие блюра не зависит
+   от того, доиграла ли JS-анимация, поэтому карточки не залипают размытыми */
+.tile{position:relative;cursor:pointer;
+  opacity:0;transform:translateY(70px);filter:blur(10px);
+  transition:opacity .9s ease,transform 1.1s cubic-bezier(.22,.61,.36,1),filter .9s ease}
+.tile.in{opacity:1;transform:translateY(0);filter:blur(0px)}
+.tile.hovered{z-index:5}                     /* имя должно рисоваться поверх соседей */
+.tile-clip{position:absolute;inset:0;overflow:hidden;border-radius:10px;
+  border:1px solid rgba(234,231,224,.08);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.tile-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.45));
+  opacity:0;transition:opacity .55s ease}
+.tile.hovered .tile-scrim{opacity:1}
 .tile img{width:100%;height:100%;object-fit:cover;display:block;
   transition:transform .9s cubic-bezier(.2,.6,.2,1)}
 .tile-tall img{object-position:top}
 .tile.hovered .tile-cover{transform:scale(1.045)}
-/* динамичное превью: кадры проекта крутятся под текстом при наведении */
-.tile-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  opacity:0;transition:opacity .8s ease;z-index:1}
-.tile-preview.on{opacity:1}
-/* ховер: крупное имя антиквой, привязано к курсору; фон не блюрим — играют картинки */
-.tile figcaption{position:absolute;inset:0;z-index:2;
+/* живое превью: быстрый кроссфейд — новый кадр просто проявляется поверх старого,
+   без движения. селектор с img — иначе transition перебивается правилом .tile img выше */
+.tile img.tile-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;z-index:1;transition:opacity .45s ease}
+.tile img.tile-preview.on{opacity:1;z-index:2}
+/* у проектов с роликом превью — ТОЛЬКО видео: вплывает поверх обложки и играет */
+.tile-video{position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .6s ease;
+  pointer-events:none;overflow:hidden;background:#000}
+.tile-video.on{opacity:1}
+.tile-video iframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:0}
+/* ховер: крупное имя антиквой, привязано к курсору; фон не блюрим — играют картинки.
+   figcaption не обрезается, поэтому длинные названия свободно выходят за карточку */
+.tile figcaption{position:absolute;inset:0;z-index:3;overflow:visible;
   display:flex;align-items:center;justify-content:center;
-  pointer-events:none;opacity:0;transition:opacity .7s ease;
-  background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.45))}
-.tile.hovered figcaption{opacity:1}
-.tile-name{font-family:var(--serif);font-weight:400;
-  font-size:clamp(38px,4.8vw,104px);line-height:1;text-transform:uppercase;
-  color:#fff;white-space:nowrap;will-change:transform;
-  text-shadow:0 6px 44px rgba(0,0,0,.85),0 1px 5px rgba(0,0,0,.65);
-  /* позицию ведёт rAF-лерп в JS — transition на transform тут даёт дребезг */
+  pointer-events:none}
+/* позицию ведёт rAF-лерп в JS — transition на transform тут даёт дребезг */
+.tile-cap{display:block;text-align:center;white-space:nowrap;will-change:transform;
   transition:opacity .7s ease;opacity:0}
-.tile.hovered .tile-name{opacity:1}
+.tile.hovered .tile-cap{opacity:1}
+.tile-name{display:block;font-family:var(--serif);font-weight:400;
+  font-size:clamp(38px,4.8vw,104px);line-height:1;text-transform:uppercase;
+  color:#fff}
+/* тип проекта — второстепенным шрифтом под названием */
+.tile-kind{display:block;margin-top:.7em;
+  font-family:var(--sans);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:rgba(255,255,255,.62)}
 .tile.hide{display:none}
 /* раскладка тайлов задаётся из JS: 18 уникальных слотов без повторяющегося ритма */
 
@@ -268,29 +330,49 @@ section{position:relative;padding:0 28px}
 
 /* ============ CASE VIEWER: лента кейса поверх размытого сайта ============ */
 /* лента уходит в блюр и темноту полностью — на фоне не остаётся ничего */
+/* blur(30px) на весь экран стоил дорого и дёргал анимацию открытия —
+   фон и так почти непрозрачный, поэтому блюр умеренный */
 #caseView{position:fixed;inset:0;z-index:90;overflow-y:auto;overscroll-behavior:contain;
-  background:rgba(0,0,0,.94);
-  -webkit-backdrop-filter:blur(30px) brightness(.35);
-  backdrop-filter:blur(30px) brightness(.35);
-  opacity:0;visibility:hidden;transition:opacity .8s ease,visibility .8s}
+  background:rgba(0,0,0,.92);
+  -webkit-backdrop-filter:blur(14px) brightness(.4);
+  backdrop-filter:blur(14px) brightness(.4);
+  opacity:0;visibility:hidden;transition:opacity .7s ease,visibility .7s;
+  will-change:opacity}
 #caseView.open{opacity:1;visibility:visible}
 .case-feed{max-width:min(1080px,90vw);margin:0 auto;padding:11vh 0 14vh;
   display:grid;grid-template-columns:repeat(2,1fr);gap:22px;align-content:start;
-  /* появляется только когда кадры готовы — иначе догрузка дёргала бы ленту */
-  opacity:0;transform:scale(.965);
-  transition:opacity .7s ease,transform .9s cubic-bezier(.22,.61,.36,1)}
-.case-feed.ready{opacity:1;transform:scale(1)}
+  /* второй этап: приходит снизу вверх из блюра и фейда — без «увеличения» */
+  opacity:0;transform:translateY(44px);filter:blur(10px);
+  transition:opacity .75s ease,transform 1s cubic-bezier(.22,.61,.36,1),filter .75s ease}
+.case-feed.ready{opacity:1;transform:translateY(0);filter:blur(0)}
 .case-head{grid-column:1/-1;text-align:center;margin-bottom:3vh}
 .case-head h3{font-family:var(--serif);font-weight:400;font-size:clamp(34px,5vw,64px);
   text-transform:uppercase;line-height:1}
 .case-head .case-cat{margin-top:12px;font-size:10.5px;letter-spacing:.26em;
   text-transform:uppercase;color:var(--ink-dim)}
+.case-about{max-width:640px;margin:3.5vh auto 0;
+  font-family:var(--serif);font-size:clamp(17px,1.6vw,23px);line-height:1.5;color:var(--ink)}
+/* выносные блоки: задача / решение / результат */
+.case-facts{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--hairline);border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);
+  margin-bottom:2vh}
+.case-fact{background:#000;padding:26px 24px 30px}
+.case-fact .fact-label{display:block;margin-bottom:14px;
+  font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}
+.case-fact p{font-size:13px;line-height:1.7;color:var(--ink-dim)}
+@media (max-width:900px){ .case-facts{grid-template-columns:1fr} }
 /* кадры сохраняют свою пропорцию: широкие — во всю ширину, квадратные/вертикальные — по два в ряд */
 .case-feed img{width:100%;height:auto;display:block;grid-column:span 2;
-  border-radius:16px;border:1px solid rgba(234,231,224,.1);
+  border-radius:10px;border:1px solid rgba(234,231,224,.1);
   box-shadow:0 24px 80px rgba(0,0,0,.55)}
 .case-feed img.narrow{grid-column:span 1}
-.case-close{position:fixed;top:18px;right:24px;z-index:95;
+.case-video{grid-column:span 2;aspect-ratio:16/9;border-radius:10px;overflow:hidden;
+  border:1px solid rgba(234,231,224,.1);box-shadow:0 24px 80px rgba(0,0,0,.55);background:#000}
+.case-video iframe{width:100%;height:100%;border:0;display:block}
+/* sticky, а не fixed: backdrop-filter оверлея делает его containing block'ом,
+   и fixed-кнопка уезжала вместе с контентом; sticky честно едет со скроллом юзера */
+.case-close{position:sticky;top:18px;z-index:95;
+  display:block;margin:18px 24px -68px auto;width:fit-content;
   background:rgba(10,10,10,.35);
   -webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);
   border:1px solid rgba(234,231,224,.16);color:var(--ink);
@@ -320,14 +402,17 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
 
 @media (max-width:900px){
   .grid-free{display:block;padding:8vh 24px}
-  .tile{margin:0 0 10vh;aspect-ratio:auto!important}
+  /* aspect-ratio НЕ сбрасываем: он единственный держит высоту карточки */
+  .tile{margin:0 0 10vh}
   .tile:nth-child(odd){width:88%}
   .tile:nth-child(even){width:74%;margin-left:auto}
   #siteTip,#logoTip{display:none}
   .corner-clock{display:none}
-  .dock{bottom:16px}
-  .dock-inner{gap:2px;padding:6px}
-  .dock a{padding:9px 12px;font-size:9.5px;letter-spacing:.12em}
+  .dock{bottom:14px;max-width:calc(100vw - 16px)}
+  .dock-inner{gap:0;padding:5px}
+  .dock a{padding:9px 8px;font-size:9px;letter-spacing:.06em}
+  .dock-sep{margin:0 2px}
+  .dock-cta .ico-arrow{width:8px;height:8px;margin-left:3px}
 }
 </style>
 </head>
@@ -342,17 +427,39 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
     <feComponentTransfer in="SourceAlpha" result="shape">
       <feFuncA type="linear" slope="25"/>
     </feComponentTransfer>
-    <!-- внутренняя тень по нижней кромке (значения в px, текст крупный) -->
-    <feOffset in="shape" dy="-5" result="o1"/>
-    <feGaussianBlur in="o1" stdDeviation="3" result="b1"/>
+    <!-- внутренняя тень по нижней кромке: узкая и резкая — светотень лежит на грани,
+         а не размазывается по букве (большой блюр делал буквы «мягкими») -->
+    <feOffset in="shape" dy="-3" result="o1"/>
+    <feGaussianBlur in="o1" stdDeviation="1.1" result="b1"/>
     <feComposite operator="out" in="shape" in2="b1" result="inv1"/>
-    <feFlood flood-color="#000" flood-opacity="0.9" result="c1"/>
+    <feFlood flood-color="#000" flood-opacity="0.85" result="c1"/>
     <feComposite operator="in" in="c1" in2="inv1" result="innerShadow"/>
-    <!-- внутренний блик по верхней кромке -->
-    <feOffset in="shape" dy="4" result="o2"/>
-    <feGaussianBlur in="o2" stdDeviation="2" result="b2"/>
+    <!-- внутренний блик по верхней кромке — такой же узкий, полная сила света -->
+    <feOffset in="shape" dy="2.5" result="o2"/>
+    <feGaussianBlur in="o2" stdDeviation="0.8" result="b2"/>
     <feComposite operator="out" in="shape" in2="b2" result="inv2"/>
-    <feFlood flood-color="#ffffff" flood-opacity="0.95" result="c2"/>
+    <feFlood flood-color="#ffffff" flood-opacity="0.8" result="c2"/>
+    <feComposite operator="in" in="c2" in2="inv2" result="innerLight"/>
+    <feMerge>
+      <feMergeNode in="SourceGraphic"/>
+      <feMergeNode in="innerShadow"/>
+      <feMergeNode in="innerLight"/>
+    </feMerge>
+  </filter>
+  <!-- то же самое, но блик тёплый — чтобы P осталась золотой на 10% заливке -->
+  <filter id="chromeBevelGold" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+    <feComponentTransfer in="SourceAlpha" result="shape">
+      <feFuncA type="linear" slope="25"/>
+    </feComponentTransfer>
+    <feOffset in="shape" dy="-3" result="o1"/>
+    <feGaussianBlur in="o1" stdDeviation="1.1" result="b1"/>
+    <feComposite operator="out" in="shape" in2="b1" result="inv1"/>
+    <feFlood flood-color="#150d02" flood-opacity="0.75" result="c1"/>
+    <feComposite operator="in" in="c1" in2="inv1" result="innerShadow"/>
+    <feOffset in="shape" dy="2.5" result="o2"/>
+    <feGaussianBlur in="o2" stdDeviation="0.8" result="b2"/>
+    <feComposite operator="out" in="shape" in2="b2" result="inv2"/>
+    <feFlood flood-color="#ffdf85" flood-opacity="0.72" result="c2"/>
     <feComposite operator="in" in="c2" in2="inv2" result="innerLight"/>
     <feMerge>
       <feMergeNode in="SourceGraphic"/>
@@ -364,7 +471,9 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
 
 <!-- PRELOADER -->
 <div id="loader">
-  <div class="loader-num" id="pct">000</div>
+  <!-- цифры сразу обёрнуты в стеклянные спаны — та же разметка, что генерит JS ниже;
+       иначе до его запуска (CDN-скрипты блокируют) на первый кадр вылезал белый текст -->
+  <div class="loader-num" id="pct"><span class="glass-text dim" data-t="0">0</span><span class="glass-text" data-t="0">0</span><span class="glass-text" data-t="0">0</span></div>
   <div class="loader-title" id="loaderTitle"><span class="glass-text" data-t="The">The</span><span class="glass-text" data-t="World">World</span><span class="glass-text" data-t="of">of</span><span class="p" data-t="P.">P.</span></div>
 </div>
 
@@ -383,7 +492,7 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
     <a href="#experience">Experience</a>
     <a href="#contact">Contact</a>
     <span class="dock-sep"></span>
-    <a class="dock-cta" href="https://www.linkedin.com/in/erenburgh/" target="_blank" rel="noopener">P.&nbsp;Erenburg <i>↗</i></a>
+    <a class="dock-cta" href="https://www.linkedin.com/in/erenburgh/" target="_blank" rel="noopener">P.&nbsp;Erenburg <span class="ico-arrow"></span></a>
   </span>
 </nav>
 
@@ -391,7 +500,10 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
 <div id="intro">
   <div class="intro-part" id="introA">
     <div class="txt">
-      <p class="lead"><em class="unit">Creative Director</em> &amp; <em class="unit">Multidisciplinary Lead&nbsp;Designer</em>.<br>Proof that one creative mind can be great at <em class="gold unit">many&nbsp;crafts</em>.</p>
+      <div class="hero-face unit" id="heroFace">
+        <img class="face-base" src="assets/hero/face.png" alt="P. Erenburg" fetchpriority="high">
+      </div>
+      <p class="lead"><em class="unit">Creative Director</em> &amp; <em class="unit">Multidisciplinary Lead&nbsp;Designer</em>.<br>Proof that one creative mind, powered by&nbsp;<em class="unit">AI</em>, can be great at <em class="gold unit">many&nbsp;crafts</em>.</p>
     </div>
   </div>
   <div class="intro-part" id="introB">
@@ -403,15 +515,15 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
         <span class="pair"><a class="studio unit" data-site="https://dizzaract.com" href="https://dizzaract.com" target="_blank" rel="noopener">Dizzaract</a><sup class="award unit">AAA Gamedev Studio</sup></span>,
         <a class="studio unit" data-site="" href="#" rel="noopener">AUDAX</a>
         — creating work for brands like
-        <span class="brand-h unit" data-logo="Autodesk" data-domain="autodesk.com">Autodesk</span>,
-        <span class="brand-h unit" data-logo="Ramp" data-domain="ramp.com">Ramp</span>,
-        <span class="brand-h unit" data-logo="Sber" data-domain="sber.ru">Sber</span>,
-        <span class="brand-h unit" data-logo="S7 Airlines" data-domain="s7.ru">S7</span>,
-        <span class="brand-h unit" data-logo="X5 Group" data-domain="x5.ru">X5</span>,
-        <span class="brand-h unit" data-logo="Guggenheim" data-domain="guggenheim.org">Guggenheim&nbsp;Museum</span>,
-        <span class="brand-h unit" data-logo="Metro C&C" data-domain="metro-cc.ru">Metro&nbsp;C&amp;C</span>,
-        <span class="brand-h unit" data-logo="Amway" data-domain="amway.com">Amway</span> and
-        <span class="brand-h unit" data-logo="Limex" data-domain="">Limex</span>.
+        <span class="brand-h unit" data-logo="Autodesk" data-file="autodesk">Autodesk</span>,
+        <span class="brand-h unit" data-logo="Ramp" data-file="ramp">Ramp</span>,
+        <span class="brand-h unit" data-logo="Sber" data-file="sber">Sber</span>,
+        <span class="brand-h unit" data-logo="S7 Airlines" data-file="s7">S7</span>,
+        <span class="brand-h unit" data-logo="X5 Group" data-file="x5">X5</span>,
+        <span class="brand-h unit" data-logo="Guggenheim" data-file="guggenheim-museum">Guggenheim&nbsp;Museum</span>,
+        <span class="brand-h unit" data-logo="Metro C&C" data-file="metro-cc">Metro&nbsp;C&amp;C</span>,
+        <span class="brand-h unit" data-logo="Amway" data-file="amway">Amway</span> and
+        <span class="brand-h unit" data-logo="Limex" data-file="limex">Limex</span>.
       </p>
     </div>
   </div>
@@ -506,8 +618,8 @@ footer{display:flex;justify-content:space-between;padding:24px 28px;
 
 <!-- CONTACT -->
 <section class="contact" id="contact">
-  <h2>Let’s create</h2>
-  <a class="email" href="mailto:paul.erenburgh@gmail.com">paul.erenburgh@gmail.com</a>
+  <h2><span class="glass-text live-glare" id="createTitle" data-t="Let’s create">Let’s create</span></h2>
+  <a class="email" href="mailto:p.erenburgh@gmail.com">p.erenburgh@gmail.com</a>
   <div class="socials">
     <a href="https://www.behance.net/erenburgh" target="_blank" rel="noopener">Behance</a>
     <a href="https://t.me/erenburgh" target="_blank" rel="noopener">Telegram</a>
@@ -598,14 +710,13 @@ const logoImg = logoTip.querySelector('img');
 const logoFallback = logoTip.querySelector('.fallback');
 document.querySelectorAll('.brand-h').forEach(el=>{
   el.addEventListener('mouseenter', ()=>{
-    const domain = el.dataset.domain;
+    /* логотипы лежат локально — не зависим от внешнего сервиса и не мигают */
     logoFallback.style.display = 'none';
     logoImg.style.display = 'block';
-    logoImg.dataset.step = 'clearbit';
-    logoImg.dataset.domain = domain;
+    logoImg.dataset.step = 'local';
+    logoImg.dataset.domain = el.dataset.domain || '';
     logoFallback.textContent = el.dataset.logo;
-    if(domain) logoImg.src = 'https://logo.clearbit.com/' + domain + '?size=256';
-    else { logoImg.style.display='none'; logoFallback.style.display='block'; }
+    logoImg.src = 'assets/logos/' + el.dataset.file + '.jpg';
     logoTip.classList.add('show');
   });
   el.addEventListener('mouseleave', ()=>logoTip.classList.remove('show'));
@@ -615,75 +726,166 @@ document.querySelectorAll('.brand-h').forEach(el=>{
   });
 });
 logoImg.addEventListener('error', ()=>{
-  if(logoImg.dataset.step === 'clearbit' && logoImg.dataset.domain){
-    logoImg.dataset.step = 'unavatar';
-    logoImg.src = 'https://unavatar.io/' + logoImg.dataset.domain;
-  }else{
-    logoImg.style.display = 'none';
-    logoFallback.style.display = 'block';
-  }
+  logoImg.style.display = 'none';
+  logoFallback.style.display = 'block';
 });
 
+/* карточка «зависала» в пространстве: блок уже уехал/выцвел, а mouseleave не пришёл,
+   потому что курсор физически не двигался — гасим подсказки на любом скролле */
+function hideTips(){
+  siteTip.classList.remove('show');
+  logoTip.classList.remove('show');
+}
+window.addEventListener('scroll', hideTips, {passive:true});
+window.addEventListener('wheel', hideTips, {passive:true});
+
 /* ---------- проекты (спарсены из Notion, порядок перемешан) ---------- */
+/* Тип проекта (виден под названием при наведении) и текст кейса.
+   about — вводный абзац; task/solution/result — выносные блоки, заполняются по мере готовности.
+   ⚠️ Тексты ниже — черновики по мотивам Notion, кроме тех, что вы пришлёте. */
+const INFO = {
+  'Farcana':{k:'Game Interface',about:'AAA competitive third-person shooter set in a Middle-Eastern sci-fi universe. I led game UX/UI: HUD, character and skin selection, VFX system, loading and menu states.',task:'',solution:'',result:''},
+  'Dizzaract':{k:'Identity',about:'Iconic brand system for an AI × gaming studio — an ecosystem of products rather than a single game.',task:'',solution:'',result:''},
+  'Enside':{k:'Identity',about:'Bold identity for a UK design team. The idea rebels against the commonplace: grotesque typography “stickered” over with slashed anti-queer type.',task:'',solution:'',result:''},
+  'X5 Marketing':{k:'Product Design',about:'CRM for X5. The service improves how brands and Perekrestok build advertising campaigns: submitting layouts, approvals, planning and tracking.',task:'',solution:'',result:''},
+  'METRO C&C':{k:'Identity',about:'Social-media visual language for two retailer sub-brands — METRO Business and METRO Partner.',task:'',solution:'',result:''},
+  'Plus Bet':{k:'Game Interface',about:'iGaming platform interface.',task:'',solution:'',result:''},
+  'Pearmill Inc.':{k:'Identity',about:'Fresh and juicy identity for a performance-marketing studio. Built on three key images: fluent shapes, stems and flat visuals, communication bubbles.',task:'',solution:'',result:''},
+  'Reward Direct':{k:'Product Design',about:'Fintech startup for buying pre-paid foreign cards. 30+ pages, states, scripts and the personal-account interface.',task:'',solution:'',result:''},
+  'ivpay':{k:'Product Design',about:'Payment product — website and visual system.',task:'',solution:'',result:''},
+  'Tank Battle':{k:'Game Interface',about:'Game UI for a tank battle project.',task:'',solution:'',result:''},
+  'UI Shots':{k:'UI',about:'Selected interface shots.',task:'',solution:'',result:''},
+  'Everie Woman':{k:'Identity',about:'A friendly visual style for an American comfortable-underwear brand. The new logo illustrates flexibility, femininity and playfulness.',task:'',solution:'',result:''},
+  'Carindust':{k:'Product Design',about:'Automotive media: design concept, minimal visual ID and logo, plus the inner pages of the site.',task:'',solution:'',result:''},
+  'GAMED':{k:'Identity',about:'Gaming visual language for a gaming product — the identity and economic layer for gamers.',task:'',solution:'',result:''},
+  'MEDSI':{k:'Key Visual',about:'Poster design for the MEDSI clinic network, highlighting the company’s main specialisations.',task:'',solution:'',result:''},
+  'AI Identity — NDA':{k:'Identity',about:'Organic identity design for an AI product.',task:'',solution:'',result:''},
+  'Pearmill Website':{k:'Web Design',about:'The new pearmill.com — implemented alongside the identity refresh.',task:'',solution:'',result:''},
+  'Kirovsky Zavod':{k:'Identity',about:'Visual language for social media of the Kirov factory (founded 1801). The goal: break the marginal image of the plant and make working there feel prestigious.',task:'',solution:'',result:''},
+  'Fintech Media — NDA':{k:'Identity',about:'High-quality brand identity for a fintech media outlet.',task:'',solution:'',result:''}
+};
+
+/* порядок = приоритет: свежие сильные кейсы сверху, дальше по убыванию.
+   Убраны как устаревшие: Uralsib, Amway, NUAR, KINEZ. Dribbble Shots слит в UI Shots */
 const PROJECTS = [
-  {t:'Farcana', cat:'gamedev', imgs:['assets/farcana/28.jpg','assets/farcana/29.png','assets/farcana/30.png','assets/farcana/31.png','assets/farcana/32.jpg']},
-  {t:'Enside', cat:'branding', imgs:['assets/enside/37.jpeg','assets/enside/38.jpeg','assets/enside/39.jpeg','assets/enside/40.jpeg','assets/enside/41.jpeg','assets/enside/42.jpeg']},
-  {t:'X5 Marketing', cat:'product', imgs:['assets/x5/98.jpg','assets/x5/99.jpg','assets/x5/100.jpg','assets/x5/101.jpg','assets/x5/102.jpg']},
-  {t:'Dizzaract', cat:'branding', imgs:['assets/dizzaract/01.png','assets/dizzaract/02.png','assets/dizzaract/03.jpg','assets/dizzaract/04.png','assets/dizzaract/05.png','assets/dizzaract/06.png']},
-  {t:'KINEZ', cat:'product', imgs:['assets/kinez/113.jpg','assets/kinez/114.jpg','assets/kinez/115.jpg','assets/kinez/116.jpg']},
-  {t:'METRO C&C', cat:'branding', imgs:['assets/metro/52.jpg','assets/metro/53.jpg','assets/metro/54.jpg','assets/metro/55.jpeg','assets/metro/56.jpg','assets/metro/57.jpg','assets/metro/58.jpg','assets/metro/59.jpg']},
-  {t:'Plus Bet', cat:'gamedev', imgs:['assets/plusbet/33.png','assets/plusbet/34.png','assets/plusbet/35.png']},
-  {t:'Pearmill Identity', cat:'branding', imgs:['assets/pearmill-id/43.jpeg','assets/pearmill-id/44.png','assets/pearmill-id/45.png','assets/pearmill-id/46.png','assets/pearmill-id/47.png']},
-  {t:'Reward Direct', cat:'product', imgs:['assets/reward/103.png','assets/reward/104.png','assets/reward/105.png']},
-  {t:'NUAR', cat:'branding', imgs:['assets/nuar/74.jpg','assets/nuar/75.jpg','assets/nuar/76.jpg','assets/nuar/77.jpg','assets/nuar/78.jpg','assets/nuar/79.jpg']},
-  {t:'ivpay', cat:'product', imgs:['assets/ivpay/25.png','assets/ivpay/26.png','assets/ivpay/27.png']},
-  {t:'Amway', cat:'branding', imgs:['assets/amway/60.jpg','assets/amway/61.jpg','assets/amway/62.jpg','assets/amway/63.jpg','assets/amway/64.jpg','assets/amway/65.jpg']},
-  {t:'Tank Battle', cat:'gamedev', imgs:['assets/tankbattle/36.png']},
-  {t:'Everie Woman', cat:'branding', imgs:['assets/everie/48.png','assets/everie/49.gif','assets/everie/50.gif','assets/everie/51.gif']},
-  {t:'Carindust', cat:'product', imgs:['assets/carindust/108.jpg','assets/carindust/109.jpg','assets/carindust/110.jpg','assets/carindust/111.jpg','assets/carindust/112.jpg']},
-  {t:'GAMED', cat:'branding', imgs:['assets/gamed/07.png','assets/gamed/08.png','assets/gamed/09.png','assets/gamed/10.png','assets/gamed/11.png','assets/gamed/12.png']},
-  {t:'Uralsib Bank', cat:'product', imgs:['assets/uralsib/106.jpg','assets/uralsib/107.jpg']},
-  {t:'MEDSI', cat:'branding', imgs:['assets/medsi/66.png','assets/medsi/67.png','assets/medsi/68.png','assets/medsi/69.png']},
-  {t:'Dribbble Shots', cat:'product', imgs:['assets/dribbble/117.png','assets/dribbble/118.png','assets/dribbble/119.png']},
-  {t:'AI Identity — NDA', cat:'branding', imgs:['assets/nda-ai/13.png','assets/nda-ai/14.png','assets/nda-ai/15.png','assets/nda-ai/16.png','assets/nda-ai/17.png','assets/nda-ai/18.png']},
-  {t:'Pearmill Website', cat:'product', imgs:['assets/pearmill-web/97.jpg']},
-  {t:'Kirovsky Zavod', cat:'branding', imgs:['assets/kirovsky/70.jpg','assets/kirovsky/71.jpg','assets/kirovsky/72.jpg','assets/kirovsky/73.jpg']},
+  {t:'Dizzaract', cat:'branding', video:'1195396105', videoAR:2.048, imgs:['assets/dizzaract/01.png','assets/dizzaract/02.png','assets/dizzaract/03.jpg','assets/dizzaract/04.png','assets/dizzaract/05.png','assets/dizzaract/06.png']},
   {t:'Fintech Media — NDA', cat:'branding', imgs:['assets/nda-fintech/19.png','assets/nda-fintech/20.png','assets/nda-fintech/21.png','assets/nda-fintech/22.png','assets/nda-fintech/23.png','assets/nda-fintech/24.png']},
+  {t:'AI Identity — NDA', cat:'branding', imgs:['assets/nda-ai/13.png','assets/nda-ai/14.png','assets/nda-ai/15.png','assets/nda-ai/16.png','assets/nda-ai/17.png','assets/nda-ai/18.png']},
+  {t:'ivpay', cat:'product', video:'1198179672', videoAR:2.048, imgs:['assets/ivpay/25.png','assets/ivpay/26.png','assets/ivpay/27.png']},
+  {t:'GAMED', cat:'branding', imgs:['assets/gamed/07.png','assets/gamed/08.png','assets/gamed/09.png','assets/gamed/10.png','assets/gamed/11.png','assets/gamed/12.png']},
+  {t:'Plus Bet', cat:'gamedev', imgs:['assets/plusbet/33.png','assets/plusbet/34.png','assets/plusbet/35.png']},
+  /* Farcana: обложка + настоящий игровой UI из раскрывающегося тоггла в Notion */
+  {t:'Farcana', cat:'gamedev', imgs:['assets/farcana/28.jpg','assets/farcana/29.png','assets/farcana/30.png',
+    'assets/farcana-ui/01.png','assets/farcana-ui/02.png','assets/farcana-ui/03.png','assets/farcana-ui/04.png',
+    'assets/farcana-ui/07.png','assets/farcana-ui/08.png','assets/farcana-ui/09.png','assets/farcana-ui/10.png',
+    'assets/farcana-ui/11.png','assets/farcana-ui/13.png','assets/farcana-ui/05.png','assets/farcana-ui/06.png',
+    'assets/farcana-ui/12.png','assets/farcana-ui/14.png']},
+  {t:'Enside', cat:'branding', imgs:['assets/enside/37.jpeg','assets/enside/38.jpeg','assets/enside/39.jpeg','assets/enside/40.jpeg','assets/enside/41.jpeg','assets/enside/42.jpeg']},
+  {t:'UI Shots', cat:'gamedev', imgs:['assets/farcana/31.png','assets/farcana/32.jpg','assets/dribbble/117.png','assets/dribbble/118.png','assets/dribbble/119.png']},
+  {t:'Tank Battle', cat:'gamedev', imgs:['assets/tankbattle-ui/01.jpg','assets/tankbattle-ui/02.jpg','assets/tankbattle-ui/03.jpg','assets/tankbattle-ui/04.jpg','assets/tankbattle-ui/05.jpg','assets/tankbattle/36.png']},
+  {t:'Pearmill Inc.', cat:'branding', video:'832672057', videoAR:1.5, imgs:['assets/pearmill-id/43.jpeg','assets/pearmill-id/44.png','assets/pearmill-id/45.png','assets/pearmill-id/46.png','assets/pearmill-id/47.png']},
+  {t:'Pearmill Website', cat:'product', video:'837699364', videoAR:1.6, imgs:['assets/pearmill-web/97.jpg']},
+  {t:'X5 Marketing', cat:'product', imgs:['assets/x5/98.jpg','assets/x5/99.jpg','assets/x5/100.jpg','assets/x5/101.jpg','assets/x5/102.jpg']},
+  {t:'METRO C&C', cat:'branding', imgs:['assets/metro/52.jpg','assets/metro/53.jpg','assets/metro/54.jpg','assets/metro/55.jpeg','assets/metro/56.jpg','assets/metro/57.jpg','assets/metro/58.jpg','assets/metro/59.jpg']},
+  {t:'Everie Woman', cat:'branding', imgs:['assets/everie/48.png','assets/everie/49.gif','assets/everie/50.gif','assets/everie/51.gif']},
+  {t:'MEDSI', cat:'branding', imgs:['assets/medsi/66.png','assets/medsi/67.png','assets/medsi/68.png','assets/medsi/69.png']},
+  {t:'Kirovsky Zavod', cat:'branding', imgs:['assets/kirovsky/70.jpg','assets/kirovsky/71.jpg','assets/kirovsky/72.jpg','assets/kirovsky/73.jpg']},
+  {t:'Carindust', cat:'product', imgs:['assets/carindust/108.jpg','assets/carindust/109.jpg','assets/carindust/110.jpg','assets/carindust/111.jpg','assets/carindust/112.jpg']},
+  {t:'Reward Direct', cat:'product', imgs:['assets/reward/103.png','assets/reward/104.png','assets/reward/105.png']},
 ];
 /* реальные пропорции обложек (ширина/высота), замерены по файлам */
 const COVER_AR = {
-  'Farcana':1.78,'Enside':1.50,'X5 Marketing':1.78,'Dizzaract':1.78,'KINEZ':1.78,
-  'METRO C&C':1.59,'Plus Bet':1.00,'Pearmill Identity':1.75,'Reward Direct':1.78,
-  'NUAR':1.78,'ivpay':1.78,'Amway':1.59,'Tank Battle':0.66,'Everie Woman':2.17,
-  'Carindust':1.78,'GAMED':1.78,'Uralsib Bank':1.78,'MEDSI':1.78,'Dribbble Shots':1.33,
-  'AI Identity — NDA':1.78,'Pearmill Website':0.66,'Kirovsky Zavod':1.78,'Fintech Media — NDA':1.78
+  'Farcana':1.78,'Enside':1.50,'X5 Marketing':1.78,'Dizzaract':1.78,
+  'METRO C&C':1.59,'Plus Bet':1.00,'Pearmill Inc.':1.75,'Reward Direct':1.78,
+  'ivpay':1.78,'Tank Battle':1.26,'Everie Woman':2.17,
+  'Carindust':1.78,'GAMED':1.78,'MEDSI':1.78,
+  'AI Identity — NDA':1.78,'Pearmill Website':1.6,'Kirovsky Zavod':1.78,'Fintech Media — NDA':1.78,
+  'UI Shots':1.78
+};
+/* вес = приоритет в сетке: свежие сильные кейсы получают крупные слоты */
+const WEIGHT = {
+  'Dizzaract':3,'Fintech Media — NDA':3,'AI Identity — NDA':3,'ivpay':3,'GAMED':3,
+  'Plus Bet':3,'Farcana':3,'Enside':2,'Pearmill Inc.':2,'Pearmill Website':2,
+  'X5 Marketing':2,'METRO C&C':2,'Everie Woman':2,'Carindust':1,'Reward Direct':1,
+  'MEDSI':1,'Kirovsky Zavod':1,'Tank Battle':1,'UI Shots':1
 };
 
 /* ---------- сетка ---------- */
 const grid = document.getElementById('grid');
+/* сетка живёт сама (как maksmartin.com/grid): видео играют, кадры листаются
+   без ховера. Но только в зоне видимости — иначе 24 живые карточки жгут CPU.
+   ВАЖНО: объявления стоят ДО цикла — bindTileHover пишет в tileMedia при создании
+   карточек, и const ниже по коду уронил бы скрипт (temporal dead zone) */
+const tileMedia = new Map();
+const inViewTiles = new Set();
+const tileIO = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    const m = tileMedia.get(en.target);
+    if(!m) return;
+    if(en.isIntersecting){ inViewTiles.add(en.target); if(!document.body.classList.contains('case-open')) m.start(); }
+    else { inViewTiles.delete(en.target); m.stop(); }
+  });
+}, {rootMargin:'120px 0px', threshold:0.05});
+
 PROJECTS.forEach((p,i)=>{
   const ar = COVER_AR[p.t] || 1.78;
   const f = document.createElement('figure');
   f.className = 'tile' + (ar < 0.9 ? ' tile-tall' : '');
   f.dataset.cat = p.cat;
   f.dataset.ar = ar;
-  f.innerHTML = `<img class="tile-cover" src="${p.imgs[0]}" alt="${p.t}" loading="lazy">
-    <img class="tile-preview pv1" alt="" aria-hidden="true">
-    <img class="tile-preview pv2" alt="" aria-hidden="true">
-    <figcaption><span class="tile-name">${p.t}</span></figcaption>`;
+  f.dataset.weight = WEIGHT[p.t] || 1;
+  /* картинки живут в обрезающем контейнере, а имя — снаружи, чтобы выходить за края */
+  f.innerHTML = `<span class="tile-clip">
+      <img class="tile-cover" src="${p.cover || p.imgs[0]}" alt="${p.t}" loading="lazy">
+      <img class="tile-preview pv1" alt="" aria-hidden="true">
+      <img class="tile-preview pv2" alt="" aria-hidden="true">
+      <span class="tile-scrim"></span>
+    </span>
+    <figcaption><span class="tile-cap">
+      <span class="tile-name">${p.t}</span>
+      <span class="tile-kind">${(INFO[p.t]||{}).k || ''}</span>
+    </span></figcaption>`;
   f.addEventListener('click', ()=>openCase(p));
   bindTileHover(f, p);
   grid.appendChild(f);
 });
 
-/* ---------- ховер карточки: имя за курсором + кручение кадров проекта ---------- */
+/* ---------- карточка: автомедиа + имя за курсором ---------- */
 function bindTileHover(tile, p){
-  const nameEl = tile.querySelector('.tile-name');
+  const nameEl = tile.querySelector('.tile-cap');
   const layers = [tile.querySelector('.pv1'), tile.querySelector('.pv2')];
-  /* крутим не больше 6 кадров — иначе при быстром проходе по карточкам
-     браузер начинает грузить сотни картинок и анимации начинают дёргаться */
+  const clip = tile.querySelector('.tile-clip');
+  /* крутим не больше 6 кадров — дальше отдача падает, а трафик растёт */
   const frames = p.imgs.slice(0, 6);
   let timer = null, startTimer = null, idx = 0, active = 0;
+  /* рандомный темп и рандомная ФАЗА старта — карточки меняются вразнобой, не хором.
+     первая смена не раньше ~0.8 периода: обложка успевает пожить, кадр не щёлкает
+     сразу при появлении карточки на экране */
+  const period = 1600 + Math.random() * 900;
+  const firstDelay = period * (0.8 + Math.random() * 0.9);
+
+  let video = null;
+  function ensureVideo(){
+    if(video) return;
+    video = document.createElement('div');
+    video.className = 'tile-video';
+    /* iframe оверсайзим до полного покрытия карточки (эквивалент object-fit:cover).
+       Считаем от РЕАЛЬНОЙ пропорции ролика (у dizzaract 2.05:1, у pearmill 1.5) —
+       расчёт от 16:9 давал леттербокс, сквозь который была видна обложка */
+    const r = tile.getBoundingClientRect();
+    const tileAR = r.width / Math.max(1, r.height), V = p.videoAR || 16/9;
+    const w = tileAR < V ? (V/tileAR*100).toFixed(1)+'%' : '100%';
+    const h = tileAR < V ? '100%' : (tileAR/V*100).toFixed(1)+'%';
+    video.innerHTML = `<iframe
+      src="https://player.vimeo.com/video/${p.video}?background=1&autoplay=1&muted=1&loop=1&autopause=0&dnt=1"
+      style="width:${w};height:${h}" allow="autoplay" title="${p.t} preview"></iframe>`;
+    video.querySelector('iframe').addEventListener('load', ()=>video.classList.add('on'));
+    clip.appendChild(video);
+  }
+  function vimeo(method){
+    if(!video) return;
+    try{ video.querySelector('iframe').contentWindow.postMessage(JSON.stringify({method}), '*'); }catch(e){}
+  }
 
   /* подгружаем только следующий кадр, а не весь проект разом */
   function warm(i){ const im = new Image(); im.decoding = 'async'; im.src = frames[i % frames.length]; }
@@ -698,14 +900,34 @@ function bindTileHover(tile, p){
     warm(idx + 1);
   }
 
+  /* автожизнь карточки: включается в зоне видимости, глохнет за её пределами */
+  tileMedia.set(tile, {
+    start(){
+      if(p.video){ ensureVideo(); vimeo('play'); return; }
+      if(frames.length < 2 || timer || startTimer) return;
+      warm(idx + 1);
+      startTimer = setTimeout(()=>{
+        startTimer = null;
+        step();
+        timer = setInterval(step, period);
+      }, firstDelay);
+    },
+    stop(){
+      clearTimeout(startTimer); clearInterval(timer);
+      startTimer = timer = null;
+      vimeo('pause');            /* кадр остаётся, плеер не жжёт CPU за кадром */
+    }
+  });
+  tileIO.observe(tile);
+
   /* плавное слежение за курсором: цель tx/ty, текущее cx/cy, догоняем каждый кадр.
      CSS-transition тут не годится — каждый mousemove перезапускал бы её и текст дребезжал */
   let tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
   function target(e){
     const r = tile.getBoundingClientRect();
-    /* держим текст внутри карточки */
-    const maxX = Math.max(0, (r.width  - nameEl.offsetWidth)  / 2 - 10);
-    const maxY = Math.max(0, (r.height - nameEl.offsetHeight) / 2 - 10);
+    /* центр имени ходит в пределах карточки, а сам текст может выходить за её края */
+    const maxX = Math.max(0, r.width  / 2 - 24);
+    const maxY = Math.max(0, r.height / 2 - 24);
     tx = Math.max(-maxX, Math.min(maxX, e.clientX - r.left - r.width  / 2));
     ty = Math.max(-maxY, Math.min(maxY, e.clientY - r.top  - r.height / 2));
   }
@@ -716,66 +938,78 @@ function bindTileHover(tile, p){
     raf = requestAnimationFrame(loop);
   }
 
+  /* ховер больше не управляет медиа — только имя и вуаль */
   tile.addEventListener('mouseenter', e=>{
     target(e);
     cx = tx; cy = ty;                            /* на входе — сразу под курсор, без подъезда */
     nameEl.style.transform = `translate3d(${cx}px,${cy}px,0)`;
     if(!raf) raf = requestAnimationFrame(loop);
     tile.classList.add('hovered');
-    if(frames.length < 2) return;
-    warm(1);
-    /* даём разглядеть обложку, потом начинаем крутить кадры */
-    startTimer = setTimeout(()=>{
-      step();
-      timer = setInterval(step, 1400);
-    }, 650);
   });
   tile.addEventListener('mousemove', target);
   tile.addEventListener('mouseleave', ()=>{
-    clearTimeout(startTimer); clearInterval(timer);
-    startTimer = timer = null; idx = 0;
     if(raf){ cancelAnimationFrame(raf); raf = null; }
     tile.classList.remove('hovered');
-    layers.forEach(l=>l.classList.remove('on'));
   });
 }
 const tiles = [...grid.querySelectorAll('.tile')];
-/* ---------- раскладчик: контейнер повторяет пропорцию картинки ----------
-   ширина по классу пропорции: ультраширокие 6 колонок, широкие 4, квадраты и вертикальные 3;
-   ряды пакуются по 12 колонок (макс 3 в ряду), стартовый отступ и сдвиги чередуются */
-/* пропорция контейнера = пропорция картинки, а РАЗМЕР варьируется:
-   один 16:9 крупный на пол-экрана, другой мелкий — сетка не читается как таблица */
-const WIDE_SPANS   = [7,4,6,5,8,4,5,6];   /* для 16:9 и шире */
-const NARROW_SPANS = [3,4,3,5,4,3];       /* для квадратов и вертикальных */
-const ROW_START    = [1,2,1,3,1,2];
+/* ---------- раскладчик: готовые шаблоны рядов ----------
+   каждый ряд — список слотов [стартовая колонка, ширина] в 12-колоночной сетке;
+   в основном 3 кейса в ряд, местами 2, изредка один крупный — и между слотами
+   всегда минимум колонка воздуха. Пропорция карточки = пропорция обложки */
+const ROW_TPL = [
+  [[3,8]],                 /* Dizzaract — один крупный */
+  [[1,6],[8,5]],           /* Fintech + AI */
+  [[2,5],[8,4]],           /* ivpay + GAMED */
+  [[1,3],[5,4],[10,3]],    /* Plus Bet + Farcana + Enside */
+  [[3,4],[8,5]],           /* UI Shots + Tank Battle */
+  [[1,5],[7,6]],           /* Pearmill Inc. + Pearmill Website */
+  [[4,8]],                 /* X5 — один крупный */
+  [[1,6],[8,5]],           /* METRO + Everie */
+  [[2,5],[8,4]],           /* MEDSI + Kirovsky */
+  [[3,4],[8,5]],           /* Carindust + Reward Direct */
+  [[2,4],[7,4]]            /* хвост: всё, что добавится позже */
+];
+/* вертикальные сдвиги по позиции в ряду: соседи различаются минимум на 5vh */
+const MT_ROWS = [[0,9,4],[7,0,11],[2,10,0],[9,3,12],[0,7,14],[10,2,8]];
 /* детерминированный «рандом» — раскладка стабильна между перерисовками */
 function rnd(i){ return ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1; }
+/* тот же источник правды, что и у CSS-медиазапроса: innerWidth может расходиться
+   с CSS-вьюпортом (масштаб, панели), и тогда сетка и стили спорят друг с другом */
+const mqDesktop = window.matchMedia('(min-width: 901px)');
 function layout(){
   const visible = tiles.filter(t=>!t.classList.contains('hide'));
-  const desktop = innerWidth > 900;
-  let wI = 0, nI = 0, row = 0, col = ROW_START[0], item = 0;
-  visible.forEach((t,i)=>{
+  const desktop = mqDesktop.matches;
+  let row = 0, slot = 0;
+  visible.forEach(t=>{
+    const ar = parseFloat(t.dataset.ar);
     if(!desktop){
-      t.style.gridColumn = t.style.aspectRatio = t.style.marginTop = '';
+      /* высоту карточке даёт ТОЛЬКО aspect-ratio: картинки лежат в absolute-контейнере,
+         поэтому без него карточка схлопывается в 0 и вся лента складывается в точку */
+      t.style.gridColumn = t.style.marginTop = '';
+      t.style.aspectRatio = String(Math.max(ar, 0.66));
       return;
     }
-    const ar = parseFloat(t.dataset.ar);
-    const span = ar >= 1.4
-      ? WIDE_SPANS[wI++ % WIDE_SPANS.length]
-      : NARROW_SPANS[nI++ % NARROW_SPANS.length];
-    if(col + span > 13 || item >= 3){
-      row++; col = ROW_START[row % ROW_START.length]; item = 0;
-    }
-    t.style.gridColumn = col + ' / span ' + span;
+    const tpl = ROW_TPL[row % ROW_TPL.length];
+    const [start, span] = tpl[slot];
+    t.style.gridColumn = start + ' / span ' + span;
     t.style.aspectRatio = String(Math.max(ar, 0.66)); /* сверхвысокие ограничиваем */
-    t.style.marginTop = Math.round(rnd(i) * 10) + 'vh';
-    col += span; item++;
+    /* лесенка: соседи в ряду всегда разнесены по вертикали минимум на 5vh,
+       чтобы не возникало желания выровнять их в линию */
+    t.style.marginTop = MT_ROWS[row % MT_ROWS.length][Math.min(slot, 2)] + 'vh';
+    slot++;
+    if(slot >= tpl.length){ slot = 0; row++; }
   });
   return visible;
 }
 layout();
 window.addEventListener('resize', layout);
+mqDesktop.addEventListener('change', layout);
+/* страховка: если GSAP не поднялся, карточки не должны остаться невидимыми в блюре */
+if(!window.gsap || !window.ScrollTrigger) tiles.forEach(t=>t.classList.add('in'));
 
+let filterTimer = null, staggerTimers = [];
+function clearStagger(){ staggerTimers.forEach(clearTimeout); staggerTimers = []; }
 const filterBtns = document.querySelectorAll('#filters button');
 filterBtns.forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -784,32 +1018,135 @@ filterBtns.forEach(btn=>{
     const cat = btn.dataset.cat;
     tiles.forEach(t=>t.classList.toggle('hide', cat!=='all' && t.dataset.cat!==cat));
     const visible = layout();
-    if(window.gsap){
-      gsap.fromTo(visible,{opacity:0,y:36},{opacity:1,y:0,duration:.8,stagger:.05,ease:'power3.out',overwrite:true});
+    /* перезапускаем вход: сбрасываем класс и возвращаем его лесенкой.
+       Таймеры прошлого переключения гасим — иначе при быстрых кликах
+       они наслаивались и отдельные карточки залипали невидимыми */
+    clearTimeout(filterTimer); clearStagger();
+    tiles.forEach(t=>t.classList.remove('in'));
+    filterTimer = setTimeout(()=>{
+      visible.forEach((t,i)=>staggerTimers.push(setTimeout(()=>t.classList.add('in'), i*45)));
+      /* страховка: по завершении лесенки ни одна видимая карточка не должна остаться скрытой */
+      staggerTimers.push(setTimeout(()=>visible.forEach(t=>t.classList.add('in')), visible.length*45 + 120));
       window.ScrollTrigger && ScrollTrigger.refresh();
-    }
+    }, 30);
   });
 });
+
+/* ---------- портрет: стеклянная голова — наклон за курсором + блик ----------
+   Сцена в src/glass-head.js (ES-модуль, подключается ниже отдельным скриптом).
+   Здесь только провода: полоса блика идёт за курсором в противофазе, как и у
+   Let's create (отражение на стекле движется навстречу взгляду). */
+window.initGlassHead = function(head){
+  const face = document.getElementById('heroFace');
+  const intro = document.getElementById('intro');
+  intro.addEventListener('mousemove', e=>{
+    const r = face.getBoundingClientRect();
+    const t = (e.clientX - r.left) / r.width;          /* 0..1 по голове */
+    head.glare.sweep = 1 - Math.max(-0.35, Math.min(1.35, t));
+    head.glare.strength = 1;
+  });
+  intro.addEventListener('mouseleave', ()=>{ head.glare.strength = 0; });
+};
+
+/* ---------- Let’s create: призматический блик идёт системно по надписи ---------- */
+(function liveGlare(){
+  const el = document.getElementById('createTitle');
+  const sec = document.getElementById('contact');
+  if(!el || !sec) return;
+  let sweep = 50, target = 50, raf = null;
+  function loop(){
+    sweep += (target - sweep) * 0.09;
+    el.style.setProperty('--sweep', sweep.toFixed(1) + '%');
+    raf = Math.abs(target - sweep) > .1 ? requestAnimationFrame(loop) : null;
+  }
+  /* позиция считается от самой надписи, а не от всей секции —
+     иначе блик у краёв вёл бы себя иначе, чем в середине */
+  sec.addEventListener('mousemove', e=>{
+    const r = el.getBoundingClientRect();
+    const t = (e.clientX - r.left) / r.width;         /* 0..1 по надписи */
+    target = Math.max(0, Math.min(1, t)) * 100;
+    if(!raf) raf = requestAnimationFrame(loop);
+  });
+})();
 
 /* ---------- вьювер кейса ---------- */
 const caseView = document.getElementById('caseView');
 const caseFeed = document.getElementById('caseFeed');
+
+/* мягкий скролл внутри кейса: своя инерция, т.к. основной Lenis сюда не заходит
+   (на caseView стоит data-lenis-prevent, иначе он съедал бы колесо) */
+let csTarget = 0, csCurrent = 0, csRaf = null;
+function csLoop(){
+  csCurrent += (csTarget - csCurrent) * 0.22;   /* было .11 — тачпад ощущался вязким */
+  if(Math.abs(csTarget - csCurrent) < 0.4){ csCurrent = csTarget; csRaf = null; }
+  else csRaf = requestAnimationFrame(csLoop);
+  caseView.scrollTop = csCurrent;
+}
+caseView.addEventListener('wheel', e=>{
+  if(!caseView.classList.contains('open')) return;
+  e.preventDefault();
+  /* высота ленты растёт по мере догрузки кадров — пересчитываем предел каждый раз,
+     иначе цель уезжала за границу и скролл дёргался */
+  const max = Math.max(0, caseView.scrollHeight - caseView.clientHeight);
+  /* deltaMode: 0 — пиксели (тачпад/большинство мышей), 1 — строки, 2 — страницы */
+  const unit = e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? caseView.clientHeight : 1;
+  csTarget = Math.max(0, Math.min(max, csTarget + e.deltaY * unit * 1.7));
+  if(!csRaf) csRaf = requestAnimationFrame(csLoop);
+}, {passive:false});
+/* если скролл пришёл не от нас (скроллбар, клавиши, тач) — подхватываем позицию,
+   иначе наша инерция дралась бы с нативной и это выглядело как прыжки.
+   «Свой» скролл распознаём по позиции: событие scroll приходит асинхронно,
+   и синхронный флаг здесь не работает — из-за него инерция глохла на первом кадре */
+caseView.addEventListener('scroll', ()=>{
+  if(Math.abs(caseView.scrollTop - csCurrent) < 2) return;   /* это наше же эхо */
+  csTarget = csCurrent = caseView.scrollTop;
+  if(csRaf){ cancelAnimationFrame(csRaf); csRaf = null; }
+}, {passive:true});
 function openCase(p){
-  let html = `<div class="case-head"><h3>${p.t}</h3><div class="case-cat">${p.cat} · ${p.imgs.length} ${p.imgs.length===1?'frame':'frames'}</div></div>`;
-  p.imgs.forEach(src=>{ html += `<img src="${src}" alt="${p.t}">`; });
-  caseFeed.innerHTML = html;
+  const info = INFO[p.t] || {};
+  let html = `<div class="case-head">
+    <h3>${p.t}</h3>
+    <div class="case-cat">${info.k || p.cat} · ${p.imgs.length} ${p.imgs.length===1?'frame':'frames'}</div>
+    ${info.about ? `<p class="case-about">${info.about}</p>` : ''}
+  </div>`;
+  /* выносные блоки: показываются только когда заполнены — задача / решение / результат */
+  const facts = [['Task',info.task],['Solution',info.solution],['Result',info.result]].filter(f=>f[1]);
+  if(facts.length){
+    html += `<div class="case-facts">` + facts.map(([label,text])=>
+      `<div class="case-fact"><span class="fact-label">${label}</span><p>${text}</p></div>`).join('') + `</div>`;
+  }
+  /* видео-встройка из Notion идёт первым кадром кейса */
+  if(p.video){
+    html += `<div class="case-video"><iframe src="https://player.vimeo.com/video/${p.video}?title=0&byline=0&portrait=0&dnt=1"
+      loading="lazy" allow="fullscreen; picture-in-picture" title="${p.t}"></iframe></div>`;
+  }
+  /* decoding=async — иначе браузер декодирует все кадры синхронно и открытие дёргается */
+  p.imgs.forEach(src=>{ html += `<img src="${src}" alt="${p.t}" decoding="async">`; });
+  /* сброс видимости БЕЗ transition: иначе снятие .ready играло фейд-аут по свежему
+     контенту — кейс мелькал, пропадал и появлялся снова */
+  caseFeed.style.transition = 'none';
   caseFeed.classList.remove('ready');
+  caseFeed.innerHTML = html;
+  void caseFeed.offsetHeight;               /* фиксируем скрытое состояние до анимаций */
+  caseFeed.style.transition = '';
   caseView.scrollTop = 0;
+  csTarget = csCurrent = 0;
+  if(csRaf){ cancelAnimationFrame(csRaf); csRaf = null; }
   caseView.classList.add('open');
   document.body.classList.add('case-open');
   window.__lenis && window.__lenis.stop();
+  /* сетка за оверлеем не должна жечь CPU: глушим видео и слайдшоу */
+  tileMedia.forEach(m=>m.stop());
 
   /* раскладка по факту: широкий кадр — во всю ширину, квадратный/вертикальный — половина,
      поэтому две квадратные картинки сами встают в один ряд */
   const imgs = [...caseFeed.querySelectorAll('img')];
+  /* 16:9 и всё, что длиннее/выше — во всю ширину; пополам идут только квадраты,
+     и два квадрата подряд сами встают в один ряд */
   const settle = img=>{
     if(!img.naturalWidth) return;
-    img.classList.toggle('narrow', img.naturalWidth / img.naturalHeight < 1.4);
+    const ar = img.naturalWidth / img.naturalHeight;
+    img.classList.toggle('narrow', ar > 0.85 && ar < 1.2);
   };
   const waits = imgs.map(img=> img.complete
     ? Promise.resolve(settle(img))
@@ -817,14 +1154,20 @@ function openCase(p){
         img.addEventListener('load', ()=>{ settle(img); res(); }, {once:true});
         img.addEventListener('error', res, {once:true});
       }));
-  /* показываем ленту, когда кадры разложились; ждём не дольше 1.5с */
-  Promise.race([Promise.all(waits), new Promise(r=>setTimeout(r,1500))])
-    .then(()=>setTimeout(()=>caseFeed.classList.add('ready'), 40));
+  /* два этапа: сначала гаснет основной лейаут (оверлей набирает плотность),
+     и только потом из блюра проявляется лента — раньше это шло одновременно и рвалось */
+  const stageOne = new Promise(r=>setTimeout(r, 700));
+  const framesReady = Promise.race([Promise.all(waits), new Promise(r=>setTimeout(r,1500))]);
+  Promise.all([stageOne, framesReady]).then(()=>caseFeed.classList.add('ready'));
 }
 function closeCase(){
   caseView.classList.remove('open');
+  caseFeed.classList.remove('ready');       /* лента гаснет вместе с оверлеем и к
+                                               следующему открытию уже скрыта */
   document.body.classList.remove('case-open');
   window.__lenis && window.__lenis.start();
+  /* оживляем карточки, оставшиеся в зоне видимости */
+  inViewTiles.forEach(t=>tileMedia.get(t)?.start());
 }
 document.getElementById('caseClose').addEventListener('click', closeCase);
 caseView.addEventListener('click', e=>{ if(e.target === caseView) closeCase(); });
@@ -834,6 +1177,23 @@ document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && caseView.clas
 document.querySelectorAll('.exp-head').forEach(h=>{
   h.addEventListener('click', ()=>h.parentElement.classList.toggle('open'));
 });
+
+/* ---------- заставка: блик THE WORLD OF P следует за курсором ---------- */
+(function titleGlare(){
+  const loader = document.getElementById('loader');
+  const title = document.getElementById('loaderTitle');
+  if(!loader || !title) return;
+  let sw = 50, target = 50, raf = null;
+  function loop(){
+    sw += (target - sw) * 0.1;
+    title.style.setProperty('--sweep', sw.toFixed(1) + '%');
+    raf = Math.abs(target - sw) > .1 ? requestAnimationFrame(loop) : null;
+  }
+  loader.addEventListener('mousemove', e=>{
+    target = (e.clientX / innerWidth) * 100;
+    if(!raf) raf = requestAnimationFrame(loop);
+  });
+})();
 
 /* ---------- preloader: цифры → The World of P → мейнскрин ---------- */
 const pctEl = document.getElementById('pct');
@@ -847,10 +1207,11 @@ const tick = setInterval(()=>{
     `<span class="glass-text${(i===0 && p<100)?' dim':''}" data-t="${ch}">${ch}</span>`).join('');
   if(p>=100){
     clearInterval(tick);
-    setTimeout(()=>{ pctEl.classList.add('out'); }, 300);
-    setTimeout(()=>{ loaderTitle.classList.add('show'); }, 750);
-    setTimeout(()=>{ loaderTitle.classList.add('out'); }, 2450);
-    setTimeout(enter, 3400);
+    /* даём разглядеть 100, затем цифры мягко гаснут — и только после этого текст */
+    setTimeout(()=>{ pctEl.classList.add('out'); }, 550);
+    setTimeout(()=>{ loaderTitle.classList.add('show'); }, 1500);
+    setTimeout(()=>{ loaderTitle.classList.add('out'); }, 3300);
+    setTimeout(enter, 4250);
   }
 }, 80);
 
@@ -872,24 +1233,54 @@ function toB(){
   introState = 'B';
   clearB();
   if(window.gsap){
+    gsap.killTweensOf(introB);
     gsap.to(introA,{opacity:0,filter:'blur(12px)',duration:.65,ease:'power2.in',
       onComplete(){ introA.style.visibility='hidden'; }});
-  }else{ introA.style.opacity=0; introA.style.visibility='hidden'; }
+    gsap.set(introB,{opacity:1,filter:'blur(0px)'});
+  }else{ introA.style.opacity=0; introA.style.visibility='hidden'; introB.style.opacity='1'; }
+  introA.style.pointerEvents='none';            /* скрытый блок не должен ловить курсор */
   introB.style.visibility='visible';
-  introB.style.opacity='1';
-  introB.style.filter='';
+  introB.style.pointerEvents='';
+  /* темп ускорен: на тачпаде пин пролетают быстро, текст должен успевать */
   wordsB.forEach((w,i)=>{
-    bTimeouts.push(setTimeout(()=>w.classList.add('on'), 450 + i*45));
+    bTimeouts.push(setTimeout(()=>w.classList.add('on'), 300 + i*30));
   });
+}
+/* уход второго блока — по времени, как у первого, а не «по шагам» вслед за скроллом */
+function toOut(){
+  introState = 'OUT';
+  /* таймеры слов НЕ гасим: если пин пролетели тачпадом, текст доигрывает проявление
+     в фоне — при возврате блок уже целый, а не пустой/с парой первых слов */
+  introB.style.pointerEvents='none';
+  if(window.gsap){
+    gsap.killTweensOf(introB);
+    gsap.to(introB,{opacity:0,filter:'blur(14px)',duration:.7,ease:'power2.in'});
+  }else{ introB.style.opacity='0'; }
+}
+function backToB(){
+  introState = 'B';
+  introB.style.pointerEvents='';
+  /* страховка: добираем слова, не успевшие проявиться при быстром проскролле */
+  wordsB.forEach((w,i)=>{
+    if(!w.classList.contains('on'))
+      bTimeouts.push(setTimeout(()=>w.classList.add('on'), 100 + i*12));
+  });
+  if(window.gsap){
+    gsap.killTweensOf(introB);
+    gsap.to(introB,{opacity:1,filter:'blur(0px)',duration:.6,ease:'power2.out'});
+  }else{ introB.style.opacity='1'; }
 }
 function toA(){
   introState = 'A';
   clearB();
   wordsB.forEach(w=>w.classList.remove('on'));
+  if(window.gsap) gsap.killTweensOf(introB);
   introB.style.opacity='0';
   introB.style.visibility='hidden';
   introB.style.filter='';
+  introB.style.pointerEvents='none';
   introA.style.visibility='visible';
+  introA.style.pointerEvents='';
   if(window.gsap){
     gsap.to(introA,{opacity:1,filter:'blur(0px)',duration:.6,ease:'power2.out'});
   }else{ introA.style.opacity=1; }
@@ -915,29 +1306,43 @@ if(window.gsap && window.ScrollTrigger){
   }
 
   ScrollTrigger.create({
-    trigger:'#intro', start:'top top', end:'+=130%', pin:true,
+    /* пин длинный (140vh): между блоками А и Б лежит реальная дистанция скролла,
+       и даже размашистый свайп тачпада не перепрыгивает Б насквозь */
+    trigger:'#intro', start:'top top', end:'+=140%', pin:true,
     anticipatePin:1, pinSpacing:true, invalidateOnRefresh:true,
+    /* скролл только переключает фазы, сами переходы играют по времени */
     onUpdate(self){
       const pr = self.progress;
-      if(pr > .1 && introState === 'A') toB();
-      else if(pr <= .1 && introState === 'B') toA();
-      /* второй блок уходит так же, как первый: блюр + фейд, к концу пина */
-      if(introState === 'B'){
-        const out = gsap.utils.clamp(0, 1, (pr - .72) / .26);
-        introB.style.opacity = String(1 - out);
-        introB.style.filter = out ? `blur(${(out * 14).toFixed(1)}px)` : '';
+      if(pr <= .08){
+        if(introState !== 'A') toA();
+      }else if(pr <= .78){
+        if(introState === 'A') toB();
+        else if(introState === 'OUT') backToB();
+      }else{
+        if(introState === 'A'){
+          /* тачпад пролетел пин насквозь: блок Б обязан предстать перед пользователем —
+             мягко осаживаем скролл в его плато, а не даём проскочить */
+          toB();
+          if(window.__lenis){
+            const hold = self.start + (self.end - self.start) * 0.45;
+            window.__lenis.scrollTo(hold, {duration:.75});
+          }
+        }
+        else if(introState === 'B') toOut();
       }
     }
   });
 
-  gsap.from('#pfTitle span',{yPercent:112,duration:1.1,ease:'power4.out',
+  /* весь портфолио заходит одинаково: снизу вверх из блюра и фейда */
+  gsap.from('#pfTitle span',{opacity:0,y:60,filter:'blur(12px)',duration:1.1,ease:'power3.out',
     scrollTrigger:{trigger:'#pfTitle',start:'top 85%'}});
-  gsap.from('#filters button',{opacity:0,y:20,duration:.7,stagger:.08,ease:'power3.out',
+  gsap.from('#filters button',{opacity:0,y:26,filter:'blur(8px)',duration:.8,stagger:.08,ease:'power3.out',
     scrollTrigger:{trigger:'#filters',start:'top 90%'}});
 
+  /* показ карточки = добавление класса, анимацию играет CSS */
   tiles.forEach(el=>{
-    gsap.from(el,{opacity:0,y:70,duration:1.2,ease:'power3.out',
-      scrollTrigger:{trigger:el,start:'top 94%',once:true}});
+    ScrollTrigger.create({trigger:el,start:'top 96%',once:true,
+      onEnter:()=>el.classList.add('in')});
   });
 
   document.querySelectorAll('.exp-row').forEach((el,i)=>{
@@ -970,6 +1375,35 @@ function clock(){
   document.getElementById('headClock').innerHTML = 'Yerevan, Armenia&nbsp;·&nbsp;' + d + ' (GMT+4)';
 }
 clock(); setInterval(clock, 1000);
+</script>
+
+<!-- стеклянная голова: three.js локально (vendor/), сцена — src/glass-head.js.
+     Грузится лениво и только при живом WebGL; иначе остаётся <img>-фолбэк -->
+<script type="importmap">
+  { "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+<script type="module">
+(() => {
+  const face = document.getElementById('heroFace');
+  if (!face) return;
+  try {
+    const c = document.createElement('canvas');
+    if (!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl')))) return;
+  } catch { return; }
+  const io = new IntersectionObserver(async ([entry]) => {
+    if (!entry.isIntersecting) return;
+    io.disconnect();
+    try {
+      const { mountGlassHead } = await import('./src/glass-head.js');
+      const head = await mountGlassHead(face);
+      window.initGlassHead(head);       // провода блика — в основном скрипте
+      window.__glassHead = head;        // ручка для отладки и подстройки
+    } catch (err) {
+      console.warn('[glass-head] сцена не поднялась, остаётся статичная картинка.', err);
+    }
+  }, { rootMargin: '200px' });
+  io.observe(face);
+})();
 </script>
 </body>
 </html>
